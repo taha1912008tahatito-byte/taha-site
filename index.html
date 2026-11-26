@@ -13,10 +13,10 @@
 <div id="progress" class="progress"></div>
 
 <nav class="navbar">
-  <span class="brand">طه</span>
+  <a href="/" class="brand" id="siteBrand">طه</a>
   <div class="nav-actions">
     <button id="themeBtn" class="icon-btn">🌙</button>
-    <a href="admin.html" class="admin-link">⚙️</a>
+    <a href="admin.html" class="admin-btn">🔐 <span>لوحة التحكم</span></a>
   </div>
 </nav>
 
@@ -26,11 +26,11 @@
       <img id="avatarImg" alt="طه" style="display:none">
       <div id="avatarPlaceholder" class="avatar-placeholder">طه</div>
     </div>
-    
+
     <h1 id="ownerName" class="hero-name">طه عبد العزيز الجمل</h1>
     <p id="ownerTitle" class="hero-sub">طالب في معهد مواد بناء حلوان</p>
     <p id="ownerLocation" class="hero-loc">📍 كفر قنديل — أطفيح — الجيزة</p>
-    
+
     <div class="age-live">
       <div class="age-cell"><b id="aYears">00</b><span>سنة</span></div>
       <div class="age-cell"><b id="aMonths">00</b><span>شهر</span></div>
@@ -39,14 +39,35 @@
       <div class="age-cell"><b id="aMins">00</b><span>دقيقة</span></div>
       <div class="age-cell"><b id="aSecs">00</b><span>ثانية</span></div>
     </div>
-    
+
     <div class="social-row">
-      <a id="waBtn" class="social-btn wa" href="#" target="_blank" rel="noopener" title="واتساب">💬</a>
-      <a id="fbBtn" class="social-btn fb" href="#" target="_blank" rel="noopener" title="فيسبوك">📘</a>
-      <a id="igBtn" class="social-btn ig" href="#" target="_blank" rel="noopener" title="إنستجرام">📸</a>
-      <button id="shareBtn" class="social-btn" title="مشاركة">🔗</button>
-      <button id="vcardBtn" class="social-btn" title="جهة الاتصال">📇</button>
-      <button id="qrBtn" class="social-btn" title="QR">📱</button>
+      <a id="waBtn" class="social-btn wa" href="#" target="_blank" rel="noopener">
+        <span class="ico">💬</span>
+        <span class="lbl">واتساب</span>
+      </a>
+      <a id="fbBtn" class="social-btn fb" href="#" target="_blank" rel="noopener">
+        <span class="ico">📘</span>
+        <span class="lbl">فيسبوك</span>
+      </a>
+      <a id="igBtn" class="social-btn ig" href="#" target="_blank" rel="noopener">
+        <span class="ico">📸</span>
+        <span class="lbl">إنستجرام</span>
+      </a>
+    </div>
+
+    <div class="social-row-mini">
+      <button id="shareBtn" class="social-mini">
+        <span class="ico">🔗</span>
+        <span class="lbl">مشاركة</span>
+      </button>
+      <button id="vcardBtn" class="social-mini">
+        <span class="ico">📇</span>
+        <span class="lbl">اتصال</span>
+      </button>
+      <button id="qrBtn" class="social-mini">
+        <span class="ico">📱</span>
+        <span class="lbl">QR</span>
+      </button>
     </div>
   </div>
 </section>
@@ -58,12 +79,11 @@
 <section id="about" class="section reveal">
   <h2 class="sec-title">عني</h2>
   <p id="aboutText" class="about-text">—</p>
-  <div class="stats-row">
-    <div class="stat"><b id="statAge">0</b><span>سنة</span></div>
-    <div class="stat"><b id="statVisits">0</b><span>زيارة</span></div>
-    <div class="stat"><b id="statCaptures">0</b><span>لقطة</span></div>
-    <div class="stat"><b id="statGallery">0</b><span>صورة</span></div>
-  </div>
+</section>
+
+<section id="features" class="section reveal" style="display:none">
+  <h2 class="sec-title">ميزات ومواهب</h2>
+  <div id="featuresGrid" class="features-grid"></div>
 </section>
 
 <section id="gallery" class="section reveal" style="display:none">
@@ -72,12 +92,12 @@
 </section>
 
 <section id="links" class="section reveal" style="display:none">
-  <h2 class="sec-title">روابط</h2>
+  <h2 class="sec-title">روابط إضافية</h2>
   <div id="extraLinksList" class="extra-links"></div>
 </section>
 
 <footer class="footer">
-  <span class="brand">طه</span>
+  <a href="/" class="brand" id="footerBrand">طه</a>
   <p>© <span id="year"></span> طه عبد العزيز الجمل</p>
   <p class="credit">Credit to t.me/x50lx :)</p>
 </footer>

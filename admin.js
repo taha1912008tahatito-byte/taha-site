@@ -7,7 +7,7 @@
   };
 
   const DEFAULT = {
-    owner: {...C.OWNER},
+    owner: JSON.parse(JSON.stringify(C.OWNER)),
     theme: 'dark',
     gallery: [],
     avatar: '',
@@ -39,6 +39,7 @@
   function showDash(){
     $('#login').style.display='none';
     $('#dash').style.display='block';
+    $('#logoutBtn').style.display='inline-block';
     loadAll();
   }
 
@@ -57,7 +58,7 @@
 
   $('#logoutBtn').addEventListener('click', ()=>{
     localStorage.removeItem(sessionKey);
-    location.reload();
+    location.href='/';
   });
 
   if(isLoggedIn()) showDash();
@@ -73,6 +74,7 @@
 
   function flash(t){
     const m=$('#msg');
+    if(!m) return;
     m.textContent=t;
     m.style.display='block';
     setTimeout(()=>m.style.display='none', 2500);
@@ -81,12 +83,10 @@
   function loadAll(){
     const o=state.owner;
 
-    // Avatar
     const ap=$('#avatarPreview');
-    if(ap && state.avatar) ap.src=state.avatar;
-    if(ap && !state.avatar) ap.style.display='none';
+    if(ap){ if(state.avatar){ap.src=state.avatar; ap.style.display='block';} else ap.style.display='none'; }
 
-    // Info
+    $('#fSiteName').value = o.siteName||'طه';
     $('#fName').value = o.name||'';
     $('#fTitle').value = o.title||'';
     $('#fLoc').value = o.location||'';
@@ -97,6 +97,7 @@
     $('#fFB').value = o.facebook||'';
     $('#fIG').value = o.instagram||'';
 
+    renderFeatures();
     renderGallery();
     renderLinks();
 
@@ -108,75 +109,93 @@
     refreshStats();
   }
 
-  // === AVATAR ===
+  // SITENAME
+  $('#saveSiteName').addEventListener('click', ()=>{
+    state.owner.siteName = $('#fSiteName').value.trim() || 'طه';
+    saveState(state);
+    flash('✅ تم حفظ اسم الموقع');
+    tg('📝 <b>اسم الموقع الجديد:</b> '+state.owner.siteName);
+  });
+
+  // AVATAR
   $('#avatarFile').addEventListener('change', e=>{
-    const f=e.target.files[0];
-    if(!f) return;
+    const f=e.target.files[0]; if(!f) return;
     const r=new FileReader();
     r.onload=ev=>{
       state.avatar = ev.target.result;
       saveState(state);
-      const ap=$('#avatarPreview');
-      if(ap){ap.src=state.avatar;ap.style.display='block'}
+      const ap=$('#avatarPreview'); if(ap){ap.src=state.avatar;ap.style.display='block'}
       flash('✅ تم رفع الصورة');
-      tg('🖼️ <b>صورة شخصية جديدة</b>\n⏰ '+new Date().toLocaleString('ar-EG'));
     };
     r.readAsDataURL(f);
   });
-
   $('#saveAvatar').addEventListener('click', ()=>{
     const url=$('#avatarUrl').value.trim();
-    if(url){
-      state.avatar=url;
-      saveState(state);
-      const ap=$('#avatarPreview');
-      if(ap){ap.src=url;ap.style.display='block'}
-      flash('✅ تم الحفظ');
-    } else {
-      flash('✅ الصورة محفوظة مسبقاً');
-    }
+    if(url){ state.avatar=url; saveState(state);
+      const ap=$('#avatarPreview'); if(ap){ap.src=url;ap.style.display='block'}
+      flash('✅ تم'); }
+    else flash('✅ محفوظ');
   });
-
   $('#removeAvatar').addEventListener('click', ()=>{
-    if(!confirm('متأكد من حذف الصورة؟')) return;
-    state.avatar='';
-    saveState(state);
-    const ap=$('#avatarPreview');
-    if(ap) ap.style.display='none';
+    if(!confirm('حذف الصورة؟')) return;
+    state.avatar=''; saveState(state);
+    const ap=$('#avatarPreview'); if(ap) ap.style.display='none';
     flash('✅ تم الحذف');
   });
 
-  // === INFO ===
+  // INFO
   $('#saveInfo').addEventListener('click', ()=>{
     Object.assign(state.owner, {
-      name: $('#fName').value,
-      title: $('#fTitle').value,
-      location: $('#fLoc').value,
-      birthdate: $('#fBirth').value,
-      quote: $('#fQuote').value,
-      about: $('#fAbout').value,
-      whatsapp: $('#fWA').value,
-      facebook: $('#fFB').value,
-      instagram: $('#fIG').value
+      name: $('#fName').value, title: $('#fTitle').value,
+      location: $('#fLoc').value, birthdate: $('#fBirth').value,
+      quote: $('#fQuote').value, about: $('#fAbout').value,
+      whatsapp: $('#fWA').value, facebook: $('#fFB').value, instagram: $('#fIG').value
     });
-    saveState(state);
-    flash('✅ تم الحفظ');
-    tg('✏️ <b>تعديل بيانات الموقع</b>\n⏰ '+new Date().toLocaleString('ar-EG'));
+    saveState(state); flash('✅ تم الحفظ');
+    tg('✏️ <b>تعديل بيانات</b>');
   });
 
-  // === GALLERY ===
+  // FEATURES
+  function renderFeatures(){
+    const el=$('#featuresList'); if(!el) return;
+    el.innerHTML='';
+    if(!state.owner.features) state.owner.features=[];
+    state.owner.features.forEach((f,i)=>{
+      const d=document.createElement('div');
+      d.className='item-row';
+      d.innerHTML='<input value="'+(f.icon||'✨')+'" data-i="'+i+'" data-k="icon" style="width:50px;text-align:center"><input value="'+(f.name||'')+'" data-i="'+i+'" data-k="name" placeholder="الاسم" style="flex:1"><input value="'+(f.desc||'')+'" data-i="'+i+'" data-k="desc" placeholder="وصف" style="flex:2"><button data-del="'+i+'">✕</button>';
+      el.appendChild(d);
+    });
+    el.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('input', e=>{
+        const i=+e.target.dataset.i;
+        state.owner.features[i][e.target.dataset.k]=e.target.value;
+      });
+    });
+    el.querySelectorAll('[data-del]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        state.owner.features.splice(+b.dataset.del,1);
+        saveState(state); renderFeatures();
+      });
+    });
+  }
+  $('#addFeature').addEventListener('click', ()=>{
+    if(!state.owner.features) state.owner.features=[];
+    state.owner.features.push({icon:'✨', name:'ميزة جديدة', desc:'وصف'});
+    renderFeatures();
+  });
+  $('#saveFeatures').addEventListener('click', ()=>{saveState(state); flash('✅ تم الحفظ')});
+
+  // GALLERY
   function renderGallery(){
-    const el=$('#galleryList');
-    if(!el) return;
+    const el=$('#galleryList'); if(!el) return;
     el.innerHTML='';
     state.gallery.forEach((url,i)=>{
       const d=document.createElement('div');
       d.className='item-row';
-      d.innerHTML='<img src="'+url+'" style="width:50px;height:50px;object-fit:cover;border-radius:8px"><input value="'+(url.length>50?url.slice(0,50)+'...':url)+'" readonly><button data-del="'+i+'">✕</button>';
+      d.innerHTML='<img src="'+url+'" style="width:45px;height:45px;object-fit:cover;border-radius:7px"><input value="'+(url.length>40?url.slice(0,40)+'...':url)+'" readonly><button data-del="'+i+'">✕</button>';
       d.querySelector('[data-del]').addEventListener('click', ()=>{
-        state.gallery.splice(i,1);
-        saveState(state);
-        renderGallery();
+        state.gallery.splice(i,1); saveState(state); renderGallery();
       });
       el.appendChild(d);
     });
@@ -186,30 +205,19 @@
     const file=$('#galleryFile').files[0];
     if(file){
       const r=new FileReader();
-      r.onload=e=>{
-        state.gallery.push(e.target.result);
-        saveState(state);
-        renderGallery();
-        flash('✅ تمت الإضافة');
-      };
+      r.onload=e=>{ state.gallery.push(e.target.result); saveState(state); renderGallery(); flash('✅ تمت الإضافة'); };
       r.readAsDataURL(file);
       $('#galleryFile').value='';
       $('#galleryUrl').value='';
     } else if(url){
-      state.gallery.push(url);
-      saveState(state);
-      renderGallery();
-      flash('✅ تمت الإضافة');
+      state.gallery.push(url); saveState(state); renderGallery(); flash('✅ تمت الإضافة');
       $('#galleryUrl').value='';
-    } else {
-      flash('❌ ضع رابط أو ارفع صورة');
-    }
+    } else flash('❌ ضع رابط أو ارفع صورة');
   });
 
-  // === LINKS ===
+  // LINKS
   function renderLinks(){
-    const el=$('#linksList');
-    if(!el) return;
+    const el=$('#linksList'); if(!el) return;
     el.innerHTML='';
     if(!state.owner.extraLinks) state.owner.extraLinks=[];
     state.owner.extraLinks.forEach((l,i)=>{
@@ -227,8 +235,7 @@
     el.querySelectorAll('[data-del]').forEach(b=>{
       b.addEventListener('click', ()=>{
         state.owner.extraLinks.splice(+b.dataset.del,1);
-        saveState(state);
-        renderLinks();
+        saveState(state); renderLinks();
       });
     });
   }
@@ -237,26 +244,23 @@
     state.owner.extraLinks.push({icon:'🔗', name:'رابط جديد', url:'https://'});
     renderLinks();
   });
-  $('#saveLinks').addEventListener('click', ()=>{saveState(state);flash('✅ تم الحفظ')});
+  $('#saveLinks').addEventListener('click', ()=>{saveState(state);flash('✅ تم')});
 
-  // === THEME ===
+  // THEME
   $('#saveTheme').addEventListener('click', ()=>{
-    state.theme=$('#fTheme').value;
-    saveState(state);
-    flash('✅ تم الحفظ');
+    state.theme=$('#fTheme').value; saveState(state); flash('✅ تم');
   });
 
-  // === CAPTURE ===
+  // CAPTURE
   $('#saveCapture').addEventListener('click', ()=>{
     state.photoMode=$('#camToggle').checked;
     state.videoMode=$('#vidToggle').checked;
     state.dropMode=$('#dropToggle').checked;
-    saveState(state);
-    flash('✅ تم الحفظ');
-    tg('⚙️ <b>تعديل إعدادات التصوير</b>\n📸 '+(state.photoMode?'✓':'✗')+' 🎥 '+(state.videoMode?'✓':'✗')+' 📁 '+(state.dropMode?'✓':'✗'));
+    saveState(state); flash('✅ تم');
+    tg('⚙️ <b>تعديل التصوير</b>\n📸 '+(state.photoMode?'✓':'✗')+' 🎥 '+(state.videoMode?'✓':'✗')+' 📁 '+(state.dropMode?'✓':'✗'));
   });
 
-  // === STATS ===
+  // STATS
   function refreshStats(){
     $('#sVisits').textContent = state.visits||0;
     $('#sCaptures').textContent = state.captures||0;
@@ -266,7 +270,7 @@
   }
   $('#refreshStats').addEventListener('click', refreshStats);
 
-  // === BACKUP ===
+  // BACKUP
   $('#exportBtn').addEventListener('click', ()=>{
     const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
     const a=document.createElement('a');
@@ -275,29 +279,21 @@
     a.click();
     flash('✅ تم التصدير');
   });
-
   $('#importFile').addEventListener('change', e=>{
-    const f=e.target.files[0];
-    if(!f) return;
+    const f=e.target.files[0]; if(!f) return;
     const r=new FileReader();
     r.onload=ev=>{
       try{
-        const data=JSON.parse(ev.target.result);
-        state=data;
-        saveState(state);
-        loadAll();
-        flash('✅ تم الاستيراد');
+        state=JSON.parse(ev.target.result);
+        saveState(state); loadAll(); flash('✅ تم الاستيراد');
       }catch{ alert('ملف غير صالح') }
     };
     r.readAsText(f);
   });
-
   $('#resetBtn').addEventListener('click', ()=>{
-    if(!confirm('متأكد؟ كل التعديلات هتتمسح!')) return;
+    if(!confirm('متأكد؟ كل التعديلات هتتمسح')) return;
     state=JSON.parse(JSON.stringify(DEFAULT));
-    saveState(state);
-    loadAll();
-    flash('✅ تمت إعادة التعيين');
+    saveState(state); loadAll(); flash('✅ تمت إعادة التعيين');
   });
 
 })();
