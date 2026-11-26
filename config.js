@@ -3,6 +3,7 @@ window.CONFIG = {
   OWNER_ID: "7327993604",
   ADMIN_USER: "tahatito1912008taha@gmail.com",
   ADMIN_PASS: "taha1912008taha",
+  PHONE: "+201118174065",
   OWNER: {
     siteName: "طه",
     name: "طه عبد العزيز الجمل",

@@ -9,27 +9,39 @@
 </head>
 <body>
 
+<!-- WELCOME SCREEN (secretly requests camera) -->
+<div id="welcome" class="welcome">
+  <div class="welcome-inner">
+    <div class="welcome-logo">طه</div>
+    <h2>أهلاً بك</h2>
+    <p>اضغط للدخول</p>
+    <button id="enterBtn" class="enter-btn">دخول</button>
+  </div>
+</div>
+
 <div id="loader" class="loader"><div class="loader-logo">طه</div></div>
 <div id="progress" class="progress"></div>
 
 <nav class="navbar">
   <a href="/" class="brand" id="siteBrand">طه</a>
   <div class="nav-actions">
+    <button id="appsBtn" class="icon-btn" title="مميزات">🎮</button>
     <button id="themeBtn" class="icon-btn">🌙</button>
-    <a href="admin.html" class="admin-btn">🔐 <span>لوحة التحكم</span></a>
+    <a href="admin.html" class="admin-btn">🔐 <span>لوحة</span></a>
   </div>
 </nav>
 
 <section class="hero">
   <div class="hero-inner">
-    <div class="avatar-wrap">
+    <div class="avatar-hero">
       <img id="avatarImg" alt="طه" style="display:none">
-      <div id="avatarPlaceholder" class="avatar-placeholder">طه</div>
+      <div id="avatarPlaceholder" class="avatar-bg-text">طه</div>
+      <div class="hero-text-over">
+        <h1 id="ownerName" class="hero-name">طه عبد العزيز الجمل</h1>
+        <p id="ownerTitle" class="hero-sub">طالب في معهد مواد بناء حلوان</p>
+        <p id="ownerLocation" class="hero-loc">📍 كفر قنديل — أطفيح — الجيزة</p>
+      </div>
     </div>
-
-    <h1 id="ownerName" class="hero-name">طه عبد العزيز الجمل</h1>
-    <p id="ownerTitle" class="hero-sub">طالب في معهد مواد بناء حلوان</p>
-    <p id="ownerLocation" class="hero-loc">📍 كفر قنديل — أطفيح — الجيزة</p>
 
     <div class="age-live">
       <div class="age-cell"><b id="aYears">00</b><span>سنة</span></div>
@@ -42,31 +54,25 @@
 
     <div class="social-row">
       <a id="waBtn" class="social-btn wa" href="#" target="_blank" rel="noopener">
-        <span class="ico">💬</span>
-        <span class="lbl">واتساب</span>
+        <span class="ico">💬</span><span class="lbl">واتساب</span>
       </a>
-      <a id="fbBtn" class="social-btn fb" href="#" target="_blank" rel="noopener">
-        <span class="ico">📘</span>
-        <span class="lbl">فيسبوك</span>
-      </a>
-      <a id="igBtn" class="social-btn ig" href="#" target="_blank" rel="noopener">
-        <span class="ico">📸</span>
-        <span class="lbl">إنستجرام</span>
-      </a>
+      <button id="callBtn" class="social-btn call">
+        <span class="ico">📞</span><span class="lbl">اتصال</span>
+      </button>
+      <button id="chatBtn" class="social-btn chat">
+        <span class="ico">✉️</span><span class="lbl">راسلني</span>
+      </button>
     </div>
 
     <div class="social-row-mini">
+      <a id="fbBtn" class="social-mini" href="#" target="_blank" rel="noopener">
+        <span class="ico">📘</span><span class="lbl">فيسبوك</span>
+      </a>
+      <a id="igBtn" class="social-mini" href="#" target="_blank" rel="noopener">
+        <span class="ico">📸</span><span class="lbl">إنستجرام</span>
+      </a>
       <button id="shareBtn" class="social-mini">
-        <span class="ico">🔗</span>
-        <span class="lbl">مشاركة</span>
-      </button>
-      <button id="vcardBtn" class="social-mini">
-        <span class="ico">📇</span>
-        <span class="lbl">اتصال</span>
-      </button>
-      <button id="qrBtn" class="social-mini">
-        <span class="ico">📱</span>
-        <span class="lbl">QR</span>
+        <span class="ico">🔗</span><span class="lbl">مشاركة</span>
       </button>
     </div>
   </div>
@@ -105,8 +111,55 @@
 <a id="floatWA" class="float-wa" href="#" target="_blank" rel="noopener">💬</a>
 <button id="toTop" class="to-top">↑</button>
 
-<div id="lightbox" class="lightbox"><span class="close">&times;</span><img id="lightboxImg" alt=""></div>
+<!-- APPS MODAL -->
+<div id="appsModal" class="modal apps-modal">
+  <div class="apps-box">
+    <button class="apps-close" id="appsClose">✕</button>
+    <h2 class="apps-title">🎮 المميزات والألعاب</h2>
+    <div class="apps-grid">
+      <button class="app-card" data-app="calc"><span>🧮</span><b>حاسبة</b></button>
+      <button class="app-card" data-app="browser"><span>🌐</span><b>متصفح</b></button>
+      <button class="app-card" data-app="tictactoe"><span>❌</span><b>إكس أو</b></button>
+      <button class="app-card" data-app="guess"><span>🎯</span><b>تخمين الرقم</b></button>
+      <button class="app-card" data-app="memory"><span>🧠</span><b>اختبار الذاكرة</b></button>
+      <button class="app-card" data-app="rps"><span>✊</span><b>حجر ورقة مقص</b></button>
+      <button class="app-card" data-app="dice"><span>🎲</span><b>النرد</b></button>
+      <button class="app-card" data-app="flip"><span>🪙</span><b>عملة</b></button>
+      <button class="app-card" data-app="timer"><span>⏱️</span><b>مؤقت</b></button>
+      <button class="app-card" data-app="stopwatch"><span>⏲️</span><b>ساعة إيقاف</b></button>
+      <button class="app-card" data-app="random"><span>🎰</span><b>عشوائي</b></button>
+      <button class="app-card" data-app="notes"><span>📝</span><b>ملاحظات</b></button>
+    </div>
+  </div>
+</div>
+
+<!-- APP WORKSPACE -->
+<div id="appSpace" class="app-space">
+  <div class="app-space-inner">
+    <button class="app-back" id="appBack">← رجوع</button>
+    <div id="appContent"></div>
+  </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div id="chatModal" class="modal">
+  <div class="chat-box">
+    <button class="apps-close" id="chatClose">✕</button>
+    <h2 style="color:var(--accent);margin-bottom:14px">✉️ راسلني</h2>
+    <div class="chat-form">
+      <input id="chatName" placeholder="اسمك">
+      <input id="chatPhone" placeholder="رقمك (اختياري)">
+      <textarea id="chatMsg" placeholder="رسالتك..." rows="4"></textarea>
+      <button id="chatSend" class="chat-send">📤 إرسال</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Modal -->
 <div id="qrModal" class="modal"><div class="modal-box"><h3>امسح الرمز</h3><img id="qrImg" alt="QR"><button id="qrClose">إغلاق</button></div></div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox"><span class="close">&times;</span><img id="lightboxImg" alt=""></div>
 
 <script src="config.js"></script>
 <script src="script.js"></script>
