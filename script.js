@@ -232,8 +232,35 @@
     }
     setT('year', new Date().getFullYear());
 
+    // Banner
+    renderBanner();
+
     // chat replies
     renderChatReplies();
+  }
+
+  function renderBanner(){
+    let existing = document.getElementById('site-banner');
+    if(existing) existing.remove();
+    const b = state.banner;
+    if(!b || !b.enabled || !b.text) return;
+    const colors = {
+      gold: 'linear-gradient(135deg, #d4af37, #9b7d24)',
+      purple: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+      green: 'linear-gradient(135deg, #22c55e, #15803d)',
+      red: 'linear-gradient(135deg, #dc143c, #9a0e2a)',
+      blue: 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+    };
+    const div = document.createElement('div');
+    div.id = 'site-banner';
+    div.style.cssText = 'position:fixed;top:60px;right:0;left:0;padding:10px 20px;background:'+(colors[b.color]||colors.gold)+';color:#fff;text-align:center;font-weight:700;font-size:13px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:slideDown .4s';
+    div.textContent = b.text;
+    const close = document.createElement('button');
+    close.textContent = '✕';
+    close.style.cssText = 'position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:11px';
+    close.onclick = ()=>div.remove();
+    div.appendChild(close);
+    document.body.appendChild(div);
   }
 
   function renderChatReplies(){

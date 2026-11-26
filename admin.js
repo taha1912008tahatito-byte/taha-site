@@ -201,6 +201,11 @@
     $('#lockToggle').checked = state.lockEnabled!==false;
     $('#lockDuration').value = state.lockDuration||15;
     $('#notifyLogin').checked = state.notifyLogin!==false;
+    if(state.banner){
+      $('#bannerToggle').checked = state.banner.enabled || false;
+      $('#bannerText').value = state.banner.text || '';
+      $('#bannerColor').value = state.banner.color || 'gold';
+    }
 
     refreshStats();
     updateCloudStatus();
@@ -516,6 +521,17 @@
   $('#resetBtn').addEventListener('click', async ()=>{
     if(!confirm('متأكد؟ كل التعديلات هتتمسح')) return;
     state=defaultState(); await cloudSave(); loadAll(); flash('✅');
+  });
+
+
+  // ===== BANNER =====
+  $('#saveBanner').addEventListener('click', async ()=>{
+    state.banner = state.banner || {};
+    state.banner.enabled = $('#bannerToggle').checked;
+    state.banner.text = $('#bannerText').value.trim();
+    state.banner.color = $('#bannerColor').value;
+    await cloudSave();
+    flash('✅ تم');
   });
 
 })();

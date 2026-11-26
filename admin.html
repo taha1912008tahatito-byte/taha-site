@@ -86,25 +86,26 @@
     <button class="tab" data-tab="visitors">👁️ الزوار</button>
     <button class="tab" data-tab="stats">📊 إحصائيات</button>
     <button class="tab" data-tab="security">🔒 أمان</button>
+    <button class="tab" data-tab="banner">📢 إعلان</button>
     <button class="tab" data-tab="backup">💾 نسخ احتياطي</button>
   </div>
 
   <div class="panel" id="panel-cloud">
-    <h3 style="color:var(--accent);margin-bottom:10px">☁️ التخزين السحابي (GitHub Gist)</h3>
-    <p style="color:var(--muted);font-size:12px;line-height:1.7;margin-bottom:12px">
-      البيانات تتخزن في Gist على حسابك — لا تمسح أبداً.<br>
-      <b>الخطوات:</b><br>
-      1. افتح https://github.com/settings/tokens/new<br>
-      2. Note: taha-site — Scopes: ✅ gist<br>
-      3. Generate token → انسخه (ghp_...)<br>
-      4. الصقه هنا
+    <h3 style="color:var(--accent);margin-bottom:12px">☁️ السحابة (بدون توكن)</h3>
+    <p style="color:var(--muted);font-size:12px;line-height:1.8;margin-bottom:16px">
+      اضغط "تفعيل" مرة واحدة. البيانات تُخزن على jsonblob.com مجاناً بدون حساب.<br>
+      بعد التفعيل، كل تعديل يترفع تلقائي — وتقدر تفتح الموقع من أي جهاز.
     </p>
-    <div class="field"><label>GitHub Token</label><input id="githubToken" placeholder="ghp_xxxxxxxxxxxx" type="password"></div>
-    <div class="field"><label>Gist ID (لو موجود)</label><input id="gistId" placeholder="يُنشأ تلقائياً"></div>
-    <button class="save-btn" id="saveCloud">حفظ وتفعيل</button>
-    <button class="save-btn" id="syncNow" style="background:#8b5cf6;color:#fff">🔄 مزامنة الآن</button>
-    <button class="save-btn" id="testCloud" style="background:#4ade80;color:#000">✅ اختبار</button>
-    <p style="margin-top:14px;font-size:12px" id="cloudStatus"><span class="status-badge err">غير مفعل</span></p>
+    <button class="save-btn" id="activateCloud" style="width:100%;padding:14px;font-size:15px">🚀 تفعيل السحابة</button>
+    <div class="field" style="margin-top:16px">
+      <label>أو الصق ID موجود للاتصال بـ blob جاهز</label>
+      <input id="existingBlobId" placeholder="10ac12175604bffbc0234b0726c51d0c">
+    </div>
+    <button class="save-btn" id="connectCloud">🔗 اتصال</button>
+    <button class="save-btn" id="syncNow" style="background:#8b5cf6;color:#fff">🔄 مزامنة</button>
+    <button class="save-btn" id="disconnectCloud" style="background:#dc143c;color:#fff">🚪 فصل</button>
+    <p style="margin-top:16px;font-size:12px" id="cloudStatus"><span class="status-badge err">غير مفعل</span></p>
+    <p style="margin-top:10px;font-size:11px;color:var(--muted)" id="cloudIdDisplay"></p>
   </div>
 
   <div class="panel active" id="panel-sitename">
@@ -216,6 +217,22 @@
     <button class="save-btn" id="saveSecurity">حفظ</button>
     <p style="color:var(--muted);font-size:11px;margin-top:14px">آخر محاولات الدخول:</p>
     <div id="loginLog"></div>
+  </div>
+
+  <div class="panel" id="panel-banner">
+    <h3 style="color:var(--accent);margin-bottom:10px">📢 إعلان في الموقع</h3>
+    <div class="toggle"><span>تفعيل الإعلان</span><input type="checkbox" id="bannerToggle"></div>
+    <div class="field"><label>نص الإعلان</label><textarea id="bannerText" placeholder="أهلاً بكم في موقعي 👋"></textarea></div>
+    <div class="field"><label>لون الإعلان</label>
+      <select id="bannerColor">
+        <option value="gold">ذهبي</option>
+        <option value="purple">بنفسجي</option>
+        <option value="green">أخضر</option>
+        <option value="red">أحمر</option>
+        <option value="blue">أزرق</option>
+      </select>
+    </div>
+    <button class="save-btn" id="saveBanner">حفظ</button>
   </div>
 
   <div class="panel" id="panel-backup">
