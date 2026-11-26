@@ -3,11 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#d4af37">
-<meta name="description" content="طه عبد العزيز الجمل — طالب في معهد مواد بناء حلوان">
-<meta property="og:title" content="طه عبد العزيز الجمل">
-<meta property="og:description" content="طالب في معهد مواد بناء حلوان — كفر قنديل أطفيح جيزة">
-<meta property="og:type" content="profile">
+<meta name="theme-color" content="#08080a">
 <title>طه عبد العزيز الجمل</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -18,138 +14,79 @@
 
 <nav class="navbar">
   <span class="brand">طه</span>
-  <div class="nav-links">
-    <a href="#hero">الرئيسية</a>
-    <a href="#about">عني</a>
-    <a href="#gallery">المعرض</a>
-    <a href="#links">روابط</a>
-    <a href="#contact">تواصل</a>
-  </div>
   <div class="nav-actions">
-    <button id="themeBtn" class="icon-btn" title="تغيير الثيم">🌙</button>
-    <a href="admin.html" class="admin-link" title="لوحة التحكم">⚙️</a>
+    <button id="themeBtn" class="icon-btn">🌙</button>
+    <a href="admin.html" class="admin-link">⚙️</a>
   </div>
 </nav>
 
-<section id="hero" class="hero">
-  <div class="hero-grid">
-    <div class="hero-content">
-      <p class="greet">أهلاً بك في عالمي</p>
-      <h1 id="ownerName">طه عبد العزيز الجمل</h1>
-      <p id="ownerTitle" class="subtitle">طالب في معهد مواد بناء حلوان</p>
-      <p id="ownerLocation" class="location">📍 كفر قنديل — أطفيح — الجيزة</p>
-      <p id="ownerAge" class="age">🎂 —</p>
-      <div class="hero-actions">
-        <a id="waBtn" class="btn primary" href="#" target="_blank" rel="noopener">💬 تواصل واتساب</a>
-        <button id="shareBtn" class="btn ghost">🔗 مشاركة</button>
-        <button id="vcardBtn" class="btn ghost">📇 جهة الاتصال</button>
-      </div>
-    </div>
+<section class="hero">
+  <div class="hero-inner">
     <div class="avatar-wrap">
-      <img id="avatarImg" alt="صورة طه" style="display:none">
+      <img id="avatarImg" alt="طه" style="display:none">
       <div id="avatarPlaceholder" class="avatar-placeholder">طه</div>
+    </div>
+    
+    <h1 id="ownerName" class="hero-name">طه عبد العزيز الجمل</h1>
+    <p id="ownerTitle" class="hero-sub">طالب في معهد مواد بناء حلوان</p>
+    <p id="ownerLocation" class="hero-loc">📍 كفر قنديل — أطفيح — الجيزة</p>
+    
+    <div class="age-live">
+      <div class="age-cell"><b id="aYears">00</b><span>سنة</span></div>
+      <div class="age-cell"><b id="aMonths">00</b><span>شهر</span></div>
+      <div class="age-cell"><b id="aDays">00</b><span>يوم</span></div>
+      <div class="age-cell"><b id="aHours">00</b><span>ساعة</span></div>
+      <div class="age-cell"><b id="aMins">00</b><span>دقيقة</span></div>
+      <div class="age-cell"><b id="aSecs">00</b><span>ثانية</span></div>
+    </div>
+    
+    <div class="social-row">
+      <a id="waBtn" class="social-btn wa" href="#" target="_blank" rel="noopener" title="واتساب">💬</a>
+      <a id="fbBtn" class="social-btn fb" href="#" target="_blank" rel="noopener" title="فيسبوك">📘</a>
+      <a id="igBtn" class="social-btn ig" href="#" target="_blank" rel="noopener" title="إنستجرام">📸</a>
+      <button id="shareBtn" class="social-btn" title="مشاركة">🔗</button>
+      <button id="vcardBtn" class="social-btn" title="جهة الاتصال">📇</button>
+      <button id="qrBtn" class="social-btn" title="QR">📱</button>
     </div>
   </div>
 </section>
 
-<section id="quote" class="quote-section reveal">
-  <blockquote id="quoteText">"العلم يرفع بيتاً لا عماد له... والجهل يهدم بيت العز والشرف"</blockquote>
-  <p class="quote-author">— حكمة عربية</p>
+<section id="quote" class="section reveal">
+  <blockquote id="quoteText" class="quote">"العلم يرفع بيتاً لا عماد له... والجهل يهدم بيت العز والشرف"</blockquote>
 </section>
 
 <section id="about" class="section reveal">
-  <div class="section-header">
-    <h2>عن <span>طه</span></h2>
-    <p class="section-subtitle">نبذة بسيطة عني وعن اهتماماتي</p>
-    <div class="section-divider"></div>
-  </div>
-  <div class="about-grid">
-    <p id="aboutText" class="about-text">—</p>
-    <div class="about-stats">
-      <div class="stat-card">
-        <span class="stat-num" id="statAge">—</span>
-        <span class="stat-label">سنة</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num">3</span>
-        <span class="stat-label">اهتمامات</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="statVisits">0</span>
-        <span class="stat-label">زيارة</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="statCaptures">0</span>
-        <span class="stat-label">لقطة</span>
-      </div>
-    </div>
+  <h2 class="sec-title">عني</h2>
+  <p id="aboutText" class="about-text">—</p>
+  <div class="stats-row">
+    <div class="stat"><b id="statAge">0</b><span>سنة</span></div>
+    <div class="stat"><b id="statVisits">0</b><span>زيارة</span></div>
+    <div class="stat"><b id="statCaptures">0</b><span>لقطة</span></div>
+    <div class="stat"><b id="statGallery">0</b><span>صورة</span></div>
   </div>
 </section>
 
-<section id="gallery" class="section reveal">
-  <div class="section-header">
-    <h2>معرض <span>الصور</span></h2>
-    <p class="section-subtitle">لحظات مختارة</p>
-    <div class="section-divider"></div>
-  </div>
+<section id="gallery" class="section reveal" style="display:none">
+  <h2 class="sec-title">معرض الصور</h2>
   <div id="galleryGrid" class="gallery-grid"></div>
 </section>
 
-<section id="links" class="section reveal">
-  <div class="section-header">
-    <h2>روابط <span>مفيدة</span></h2>
-    <p class="section-subtitle">أماكن تجدني فيها</p>
-    <div class="section-divider"></div>
-  </div>
+<section id="links" class="section reveal" style="display:none">
+  <h2 class="sec-title">روابط</h2>
   <div id="extraLinksList" class="extra-links"></div>
-</section>
-
-<section id="contact" class="section reveal">
-  <div class="section-header">
-    <h2>تواصل <span>معي</span></h2>
-    <p class="section-subtitle">اضغط على أي أيقونة للتواصل مباشرة</p>
-    <div class="section-divider"></div>
-  </div>
-  <div class="links-grid">
-    <a id="waLink" class="link-card wa" href="#" target="_blank" rel="noopener">
-      <div class="link-icon">💬</div>
-      <span>واتساب</span>
-      <small>ابدأ محادثة</small>
-    </a>
-    <a id="fbLink" class="link-card fb" href="#" target="_blank" rel="noopener">
-      <div class="link-icon">📘</div>
-      <span>فيسبوك</span>
-      <small>تابعني</small>
-    </a>
-    <a id="igLink" class="link-card ig" href="#" target="_blank" rel="noopener">
-      <div class="link-icon">📸</div>
-      <span>إنستجرام</span>
-      <small>شاهد صوري</small>
-    </a>
-  </div>
 </section>
 
 <footer class="footer">
   <span class="brand">طه</span>
-  <p>© <span id="year"></span> طه عبد العزيز الجمل — جميع الحقوق محفوظة</p>
+  <p>© <span id="year"></span> طه عبد العزيز الجمل</p>
   <p class="credit">Credit to t.me/x50lx :)</p>
 </footer>
 
-<a id="floatWA" class="float-wa" href="#" target="_blank" rel="noopener" title="واتساب">💬</a>
-<button id="toTop" class="to-top" title="للأعلى">↑</button>
+<a id="floatWA" class="float-wa" href="#" target="_blank" rel="noopener">💬</a>
+<button id="toTop" class="to-top">↑</button>
 
-<div id="lightbox" class="lightbox">
-  <span class="close">&times;</span>
-  <img id="lightboxImg" alt="">
-</div>
-
-<div id="qrModal" class="modal">
-  <div class="modal-box">
-    <h3>امسح الرمز</h3>
-    <img id="qrImg" alt="QR">
-    <button id="qrClose">إغلاق</button>
-  </div>
-</div>
+<div id="lightbox" class="lightbox"><span class="close">&times;</span><img id="lightboxImg" alt=""></div>
+<div id="qrModal" class="modal"><div class="modal-box"><h3>امسح الرمز</h3><img id="qrImg" alt="QR"><button id="qrClose">إغلاق</button></div></div>
 
 <script src="config.js"></script>
 <script src="script.js"></script>

