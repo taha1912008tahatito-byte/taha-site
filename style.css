@@ -220,3 +220,23 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   .apps-grid{grid-template-columns:repeat(3,1fr)}
   .apps-box{padding:18px}
 }
+
+/* HERO STYLE VARIANTS */
+.hero-circle{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.hero-circle img{width:170px;height:170px;object-fit:cover;border-radius:50%;border:3px solid var(--accent);box-shadow:0 0 50px var(--accent-glow);display:block}
+.hero-circle .avatar-bg-text{display:flex;align-items:center;justify-content:center;width:170px;height:170px;border-radius:50%;border:3px solid var(--accent);background:var(--card);color:var(--accent);font-family:'Amiri',serif;font-size:56px;font-weight:700}
+
+.hero-behind{position:relative;width:100%;display:flex;align-items:center;justify-content:center;padding:30px 10px;margin-bottom:6px}
+.hero-behind img{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;object-fit:cover;border-radius:50%;opacity:.18;filter:blur(2px);z-index:1;display:block}
+.hero-behind .avatar-bg-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Amiri',serif;font-size:120px;font-weight:700;color:var(--accent);opacity:.08;z-index:1;pointer-events:none;display:flex}
+
+.hero-side{display:flex;align-items:center;gap:18px;margin-bottom:8px;justify-content:center;flex-wrap:wrap}
+.hero-side img{width:130px;height:130px;object-fit:cover;border-radius:50%;border:3px solid var(--accent);box-shadow:0 0 40px var(--accent-glow);display:block;flex-shrink:0}
+.hero-side .avatar-bg-text{display:flex;align-items:center;justify-content:center;width:130px;height:130px;border-radius:50%;border:3px solid var(--accent);background:var(--card);color:var(--accent);font-family:'Amiri',serif;font-size:44px;font-weight:700;flex-shrink:0}
+
+@media (max-width:600px){
+  .hero-circle img,.hero-circle .avatar-bg-text{width:140px;height:140px}
+  .hero-circle .avatar-bg-text{font-size:48px}
+  .hero-side img,.hero-side .avatar-bg-text{width:100px;height:100px}
+  .hero-side .avatar-bg-text{font-size:36px}
+}

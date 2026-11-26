@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- WELCOME SCREEN (secretly requests camera) -->
 <div id="welcome" class="welcome">
   <div class="welcome-inner">
     <div class="welcome-logo">طه</div>
@@ -33,14 +32,14 @@
 
 <section class="hero">
   <div class="hero-inner">
-    <div class="avatar-hero">
+    <div id="heroStyleWrap" class="hero-circle">
       <img id="avatarImg" alt="طه" style="display:none">
       <div id="avatarPlaceholder" class="avatar-bg-text">طه</div>
-      <div class="hero-text-over">
-        <h1 id="ownerName" class="hero-name">طه عبد العزيز الجمل</h1>
-        <p id="ownerTitle" class="hero-sub">طالب في معهد مواد بناء حلوان</p>
-        <p id="ownerLocation" class="hero-loc">📍 كفر قنديل — أطفيح — الجيزة</p>
-      </div>
+    </div>
+    <div class="hero-text-block">
+      <h1 id="ownerName" class="hero-name">طه عبد العزيز الجمل</h1>
+      <p id="ownerTitle" class="hero-sub">طالب في معهد مواد بناء حلوان</p>
+      <p id="ownerLocation" class="hero-loc">📍 كفر قنديل — أطفيح — الجيزة</p>
     </div>
 
     <div class="age-live">
@@ -111,7 +110,6 @@
 <a id="floatWA" class="float-wa" href="#" target="_blank" rel="noopener">💬</a>
 <button id="toTop" class="to-top">↑</button>
 
-<!-- APPS MODAL -->
 <div id="appsModal" class="modal apps-modal">
   <div class="apps-box">
     <button class="apps-close" id="appsClose">✕</button>
@@ -120,20 +118,22 @@
       <button class="app-card" data-app="calc"><span>🧮</span><b>حاسبة</b></button>
       <button class="app-card" data-app="browser"><span>🌐</span><b>متصفح</b></button>
       <button class="app-card" data-app="tictactoe"><span>❌</span><b>إكس أو</b></button>
-      <button class="app-card" data-app="guess"><span>🎯</span><b>تخمين الرقم</b></button>
-      <button class="app-card" data-app="memory"><span>🧠</span><b>اختبار الذاكرة</b></button>
-      <button class="app-card" data-app="rps"><span>✊</span><b>حجر ورقة مقص</b></button>
-      <button class="app-card" data-app="dice"><span>🎲</span><b>النرد</b></button>
+      <button class="app-card" data-app="guess"><span>🎯</span><b>تخمين</b></button>
+      <button class="app-card" data-app="memory"><span>🧠</span><b>ذاكرة</b></button>
+      <button class="app-card" data-app="rps"><span>✊</span><b>حجر ورقة</b></button>
+      <button class="app-card" data-app="dice"><span>🎲</span><b>نرد</b></button>
       <button class="app-card" data-app="flip"><span>🪙</span><b>عملة</b></button>
       <button class="app-card" data-app="timer"><span>⏱️</span><b>مؤقت</b></button>
-      <button class="app-card" data-app="stopwatch"><span>⏲️</span><b>ساعة إيقاف</b></button>
+      <button class="app-card" data-app="stopwatch"><span>⏲️</span><b>ساعة</b></button>
       <button class="app-card" data-app="random"><span>🎰</span><b>عشوائي</b></button>
       <button class="app-card" data-app="notes"><span>📝</span><b>ملاحظات</b></button>
+      <button class="app-card" data-app="qrgen"><span>📱</span><b>QR</b></button>
+      <button class="app-card" data-app="bmi"><span>⚖️</span><b>BMI</b></button>
+      <button class="app-card" data-app="password"><span>🔐</span><b>كلمة سر</b></button>
     </div>
   </div>
 </div>
 
-<!-- APP WORKSPACE -->
 <div id="appSpace" class="app-space">
   <div class="app-space-inner">
     <button class="app-back" id="appBack">← رجوع</button>
@@ -141,7 +141,6 @@
   </div>
 </div>
 
-<!-- CHAT MODAL -->
 <div id="chatModal" class="modal">
   <div class="chat-box">
     <button class="apps-close" id="chatClose">✕</button>
@@ -152,16 +151,18 @@
       <textarea id="chatMsg" placeholder="رسالتك..." rows="4"></textarea>
       <button id="chatSend" class="chat-send">📤 إرسال</button>
     </div>
+    <div id="chatReplies" style="margin-top:14px;max-height:200px;overflow-y:auto;display:none">
+      <p style="color:var(--accent);font-size:12px;margin-bottom:6px">📬 الردود:</p>
+      <div id="chatRepliesList"></div>
+    </div>
   </div>
 </div>
 
-<!-- QR Modal -->
 <div id="qrModal" class="modal"><div class="modal-box"><h3>امسح الرمز</h3><img id="qrImg" alt="QR"><button id="qrClose">إغلاق</button></div></div>
-
-<!-- Lightbox -->
 <div id="lightbox" class="lightbox"><span class="close">&times;</span><img id="lightboxImg" alt=""></div>
 
 <script src="config.js"></script>
+<script src="sync.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

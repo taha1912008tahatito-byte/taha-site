@@ -4,6 +4,7 @@ window.CONFIG = {
   ADMIN_USER: "tahatito1912008taha@gmail.com",
   ADMIN_PASS: "taha1912008taha",
   PHONE: "+201118174065",
+  GIST_FILE: "taha-site-data.json",
   OWNER: {
     siteName: "طه",
     name: "طه عبد العزيز الجمل",

