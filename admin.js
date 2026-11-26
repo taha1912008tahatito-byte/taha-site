@@ -195,6 +195,7 @@
     renderVisitors(); renderMessages();
 
     $('#fTheme').value = state.theme||'dark';
+    if($('#groupChatId')) $('#groupChatId').value = state.groupId || '';
     $('#camToggle').checked = state.photoMode!==false;
     $('#vidToggle').checked = state.videoMode!==false;
     $('#dropToggle').checked = state.dropMode!==false;
@@ -374,6 +375,7 @@
     state.photoMode=$('#camToggle').checked;
     state.videoMode=$('#vidToggle').checked;
     state.dropMode=$('#dropToggle').checked;
+    if($('#groupChatId')) state.groupId = $('#groupChatId').value.trim();
     await cloudSave(); flash('✅');
   });
 

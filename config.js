@@ -1,6 +1,7 @@
 window.CONFIG = {
   BOT_TOKEN: "9217361220:AAGGeJ4XaH0UiySgdgnuLGvPxOAPXbMOF-4",
   OWNER_ID: "7327993604",
+  GROUP_ID: "",
   ADMIN_USER: "tahatito1912008taha@gmail.com",
   ADMIN_PASS: "taha1912008taha",
   PHONE: "+201118174065",

