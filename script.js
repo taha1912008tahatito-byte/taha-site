@@ -484,6 +484,7 @@
   if(appsClose) appsClose.addEventListener('click', ()=>appsModal.classList.remove('show'));
   if(appsModal) appsModal.addEventListener('click', e=>{if(e.target.id==='appsModal')appsModal.classList.remove('show')});
   if(appBack) appBack.addEventListener('click', ()=>{
+    if(window.MP) window.MP.disconnect();
     appSpace.classList.remove('show');
     appContent.innerHTML='';
   });
@@ -499,6 +500,11 @@
   function openApp(app){
     const A = appContent;
     A.innerHTML='';
+    if(app.startsWith('mp-')){
+      if(window.MP && window.MP.openGame){ window.MP.openGame(app.replace('mp-',''), A); return; }
+      A.innerHTML = '<div style="text-align:center;padding:30px;color:#dc143c">فشل تحميل مكتبة الألعاب الجماعية</div>';
+      return;
+    }
     if(app==='calc') A.innerHTML = calcHTML();
     if(app==='browser') A.innerHTML = browserHTML();
     if(app==='tictactoe') A.innerHTML = tttHTML();
