@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#08080a">
+<meta name="theme-color" content="#18191a">
 <title>طه عبد العزيز الجمل</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -18,98 +18,136 @@
   </div>
 </div>
 
-<div id="loader" class="loader"><div class="loader-logo">طه</div></div>
-<div id="progress" class="progress"></div>
-
 <nav class="navbar">
   <a href="/" class="brand" id="siteBrand">طه</a>
   <div class="nav-actions">
-    <button id="appsBtn" class="icon-btn" title="مميزات">🎮</button>
+    <button id="appsBtn" class="icon-btn" title="المميزات">🎮</button>
     <button id="themeBtn" class="icon-btn">🌙</button>
-    <a href="admin.html" class="admin-btn">🔐 <span>لوحة</span></a>
+    <a href="admin.html" class="admin-btn">🔐 لوحة</a>
   </div>
 </nav>
 
-<section class="hero">
-  <div class="hero-inner">
-    <div id="heroStyleWrap" class="hero-circle">
-      <img id="avatarImg" alt="طه" style="display:none">
-      <div id="avatarPlaceholder" class="avatar-bg-text">طه</div>
-    </div>
-    <div class="hero-text-block">
-      <h1 id="ownerName" class="hero-name">طه عبد العزيز الجمل</h1>
-      <p id="ownerTitle" class="hero-sub">طالب في معهد مواد بناء حلوان</p>
-      <p id="ownerLocation" class="hero-loc">📍 كفر قنديل — أطفيح — الجيزة</p>
-    </div>
+<div class="fb-container">
+  <aside class="fb-sidebar">
+    <h3>روابط سريعة</h3>
+    <a href="#" id="waSide">💬 واتساب</a>
+    <a href="#" id="fbSide">📘 فيسبوك</a>
+    <a href="#" id="igSide">📸 إنستجرام</a>
+    <a href="#" id="callSide">📞 اتصال</a>
+    <a href="#" id="chatSide">✉️ راسلني</a>
+    <a href="#" id="qrSide">📱 QR</a>
+  </aside>
 
-    <div class="age-live">
-      <div class="age-cell"><b id="aYears">00</b><span>سنة</span></div>
-      <div class="age-cell"><b id="aMonths">00</b><span>شهر</span></div>
-      <div class="age-cell"><b id="aDays">00</b><span>يوم</span></div>
-      <div class="age-cell"><b id="aHours">00</b><span>ساعة</span></div>
-      <div class="age-cell"><b id="aMins">00</b><span>دقيقة</span></div>
-      <div class="age-cell"><b id="aSecs">00</b><span>ثانية</span></div>
-    </div>
-
-    <div class="social-row">
-      <a id="waBtn" class="social-btn wa" href="#" target="_blank" rel="noopener">
-        <span class="ico">💬</span><span class="lbl">واتساب</span>
-      </a>
-      <button id="callBtn" class="social-btn call">
-        <span class="ico">📞</span><span class="lbl">اتصال</span>
-      </button>
-      <button id="chatBtn" class="social-btn chat">
-        <span class="ico">✉️</span><span class="lbl">راسلني</span>
-      </button>
+  <main class="fb-feed">
+    <div class="fb-card" style="padding:0;overflow:hidden">
+      <div class="fb-cover" id="coverWrap"></div>
+      <div class="fb-profile">
+        <div id="avatarWrap"><div class="fb-avatar-placeholder" id="avatarPlaceholder">طه</div></div>
+        <div class="fb-profile-info">
+          <div class="fb-name" id="ownerName">طه عبد العزيز الجمل</div>
+          <div class="fb-sub" id="ownerTitle">طالب في معهد مواد بناء حلوان</div>
+          <div class="fb-sub" id="ownerLocation">📍 كفر قنديل — أطفيح — الجيزة</div>
+        </div>
+      </div>
+      <div class="fb-tabs">
+        <button class="fb-tab active" data-tab="feed">المنشورات</button>
+        <button class="fb-tab" data-tab="about">عني</button>
+        <button class="fb-tab" data-tab="photos">الصور</button>
+      </div>
     </div>
 
-    <div class="social-row-mini">
-      <a id="fbBtn" class="social-mini" href="#" target="_blank" rel="noopener">
-        <span class="ico">📘</span><span class="lbl">فيسبوك</span>
-      </a>
-      <a id="igBtn" class="social-mini" href="#" target="_blank" rel="noopener">
-        <span class="ico">📸</span><span class="lbl">إنستجرام</span>
-      </a>
-      <button id="shareBtn" class="social-mini">
-        <span class="ico">🔗</span><span class="lbl">مشاركة</span>
-      </button>
+    <div id="tab-feed">
+      <div class="fb-card">
+        <div class="age-live">
+          <div class="age-cell"><b id="aYears">00</b><span>سنة</span></div>
+          <div class="age-cell"><b id="aMonths">00</b><span>شهر</span></div>
+          <div class="age-cell"><b id="aDays">00</b><span>يوم</span></div>
+          <div class="age-cell"><b id="aHours">00</b><span>ساعة</span></div>
+          <div class="age-cell"><b id="aMins">00</b><span>دقيقة</span></div>
+          <div class="age-cell"><b id="aSecs">00</b><span>ثانية</span></div>
+        </div>
+        <div class="social-row">
+          <a id="waBtn" class="social-btn wa" href="#" target="_blank"><span class="ico">💬</span><span class="lbl">واتساب</span></a>
+          <button id="callBtn" class="social-btn call"><span class="ico">📞</span><span class="lbl">اتصال</span></button>
+          <button id="chatBtn" class="social-btn chat"><span class="ico">✉️</span><span class="lbl">راسلني</span></button>
+        </div>
+      </div>
+
+      <div class="post">
+        <div class="post-header">
+          <div class="post-avatar" id="postAvatar">ط</div>
+          <div>
+            <div class="post-name" id="postName">طه عبد العزيز الجمل</div>
+            <div class="post-time">الآن</div>
+          </div>
+        </div>
+        <div class="post-content" id="postContent">—</div>
+        <div class="post-actions">
+          <button class="post-action">👍 إعجاب</button>
+          <button class="post-action">💬 تعليق</button>
+          <button class="post-action">🔗 مشاركة</button>
+        </div>
+      </div>
+
+      <div class="post">
+        <div class="post-header">
+          <div class="post-avatar">💡</div>
+          <div><div class="post-name">حكمة اليوم</div><div class="post-time">منذ قليل</div></div>
+        </div>
+        <div class="post-content" id="quoteText">—</div>
+      </div>
+
+      <div class="post" id="featuresSection" style="display:none">
+        <div class="post-header">
+          <div class="post-avatar">✨</div>
+          <div><div class="post-name">ميزات ومواهب</div><div class="post-time">—</div></div>
+        </div>
+        <div id="featuresGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"></div>
+      </div>
     </div>
-  </div>
-</section>
 
-<section id="quote" class="section reveal">
-  <blockquote id="quoteText" class="quote">"العلم يرفع بيتاً لا عماد له... والجهل يهدم بيت العز والشرف"</blockquote>
-</section>
+    <div id="tab-about" style="display:none">
+      <div class="fb-card">
+        <h3 style="color:var(--accent);margin-bottom:10px;font-size:15px">عني</h3>
+        <p id="aboutText" style="font-size:14px;line-height:1.8;color:var(--fb-text)">—</p>
+      </div>
+    </div>
 
-<section id="about" class="section reveal">
-  <h2 class="sec-title">عني</h2>
-  <p id="aboutText" class="about-text">—</p>
-</section>
+    <div id="tab-photos" style="display:none">
+      <div class="fb-card">
+        <h3 style="color:var(--accent);margin-bottom:10px;font-size:15px">الصور</h3>
+        <div id="galleryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px"></div>
+      </div>
+    </div>
 
-<section id="features" class="section reveal" style="display:none">
-  <h2 class="sec-title">ميزات ومواهب</h2>
-  <div id="featuresGrid" class="features-grid"></div>
-</section>
+    <div id="linksSection" style="display:none">
+      <div class="fb-card">
+        <h3 style="color:var(--accent);margin-bottom:10px;font-size:15px">روابط إضافية</h3>
+        <div id="extraLinksList"></div>
+      </div>
+    </div>
+  </main>
 
-<section id="gallery" class="section reveal" style="display:none">
-  <h2 class="sec-title">معرض الصور</h2>
-  <div id="galleryGrid" class="gallery-grid"></div>
-</section>
-
-<section id="links" class="section reveal" style="display:none">
-  <h2 class="sec-title">روابط إضافية</h2>
-  <div id="extraLinksList" class="extra-links"></div>
-</section>
+  <aside class="fb-sidebar">
+    <h3>معلومات</h3>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7" id="sideAbout">—</p>
+    <h3 style="margin-top:14px">إحصائيات</h3>
+    <p style="font-size:11px;color:var(--muted)">👁️ زيارات: <b id="sideVisits" style="color:var(--accent)">0</b></p>
+    <p style="font-size:11px;color:var(--muted)">📸 صور: <b id="sideCaptures" style="color:var(--accent)">0</b></p>
+    <p style="font-size:11px;color:var(--muted)">🎥 فيديو: <b id="sideVideos" style="color:var(--accent)">0</b></p>
+  </aside>
+</div>
 
 <footer class="footer">
-  <a href="/" class="brand" id="footerBrand">طه</a>
+  <a href="/" class="brand" id="footerBrand" style="font-size:18px">طه</a>
   <p>© <span id="year"></span> طه عبد العزيز الجمل</p>
   <p class="credit">Credit to t.me/x50lx :)</p>
 </footer>
 
-<a id="floatWA" class="float-wa" href="#" target="_blank" rel="noopener">💬</a>
+<a id="floatWA" class="float-wa" href="#" target="_blank">💬</a>
 <button id="toTop" class="to-top">↑</button>
 
+<!-- APPS MODAL — 20 زرًا جديدًا + القديمة -->
 <div id="appsModal" class="modal apps-modal">
   <div class="apps-box">
     <button class="apps-close" id="appsClose">✕</button>
@@ -130,10 +168,6 @@
       <button class="app-card" data-app="qrgen"><span>📱</span><b>QR</b></button>
       <button class="app-card" data-app="bmi"><span>⚖️</span><b>BMI</b></button>
       <button class="app-card" data-app="password"><span>🔐</span><b>كلمة سر</b></button>
-      <button class="app-card" data-app="mp-chat"><span>💬</span><b>دردشة جماعية</b></button>
-      <button class="app-card" data-app="mp-ttt"><span>❌</span><b>إكس أو جماعي</b></button>
-      <button class="app-card" data-app="mp-rps"><span>✊</span><b>حجر ورقة جماعي</b></button>
-      <button class="app-card" data-app="mp-reaction"><span>⚡</span><b>سباق سرعة</b></button>
       <button class="app-card" data-app="prayer"><span>🕌</span><b>مواقيت الصلاة</b></button>
       <button class="app-card" data-app="weather"><span>🌤️</span><b>الطقس</b></button>
       <button class="app-card" data-app="currency"><span>💱</span><b>عملات</b></button>
@@ -145,6 +179,10 @@
       <button class="app-card" data-app="unitconv"><span>📏</span><b>وحدات</b></button>
       <button class="app-card" data-app="countdown"><span>⏳</span><b>عداد</b></button>
       <button class="app-card" data-app="wordscramble"><span>🔤</span><b>حروف</b></button>
+      <button class="app-card" data-app="mp-chat"><span>💬</span><b>دردشة جماعية</b></button>
+      <button class="app-card" data-app="mp-ttt"><span>❌</span><b>إكس أو جماعي</b></button>
+      <button class="app-card" data-app="mp-rps"><span>✊</span><b>حجر ورقة جماعي</b></button>
+      <button class="app-card" data-app="mp-reaction"><span>⚡</span><b>سباق سرعة</b></button>
     </div>
   </div>
 </div>
@@ -159,28 +197,28 @@
 <div id="chatModal" class="modal">
   <div class="chat-box">
     <button class="apps-close" id="chatClose">✕</button>
-    <h2 style="color:var(--accent);margin-bottom:14px">✉️ راسلني</h2>
+    <h2 style="color:var(--accent);margin-bottom:12px;font-size:17px">✉️ راسلني</h2>
     <div class="chat-form">
       <input id="chatName" placeholder="اسمك">
       <input id="chatPhone" placeholder="رقمك (اختياري)">
-      <textarea id="chatMsg" placeholder="رسالتك..." rows="4"></textarea>
+      <textarea id="chatMsg" placeholder="رسالتك..." rows="3"></textarea>
       <button id="chatSend" class="chat-send">📤 إرسال</button>
     </div>
-    <div id="chatReplies" style="margin-top:14px;max-height:200px;overflow-y:auto;display:none">
-      <p style="color:var(--accent);font-size:12px;margin-bottom:6px">📬 الردود:</p>
+    <div id="chatReplies" style="margin-top:12px;max-height:200px;overflow-y:auto;display:none">
+      <p style="color:var(--accent);font-size:11px;margin-bottom:4px">📬 الردود:</p>
       <div id="chatRepliesList"></div>
     </div>
   </div>
 </div>
 
-<div id="qrModal" class="modal"><div class="modal-box"><h3>امسح الرمز</h3><img id="qrImg" alt="QR"><button id="qrClose">إغلاق</button></div></div>
-<div id="lightbox" class="lightbox"><span class="close">&times;</span><img id="lightboxImg" alt=""></div>
+<div id="qrModal" class="modal"><div class="modal-box"><h3>امسح الرمز</h3><img id="qrImg" alt="QR" style="width:180px;height:180px;background:#fff;border-radius:8px;padding:5px;margin:10px 0"><button id="qrClose" style="padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:700;cursor:pointer">إغلاق</button></div></div>
+<div id="lightbox" class="lightbox"><span style="position:absolute;top:14px;right:18px;font-size:32px;color:#fff;cursor:pointer" id="lightboxClose">&times;</span><img id="lightboxImg" alt=""></div>
 
 <script src="config.js"></script>
 <script src="sync.js"></script>
-<script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script>
-<script src="multiplayer.js"></script>
-<script src="features.js"></script>
-<script src="script.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js" defer></script>
+<script src="multiplayer.js" defer></script>
+<script src="features.js" defer></script>
+<script src="script.js" defer></script>
 </body>
 </html>
