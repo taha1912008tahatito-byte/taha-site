@@ -5,7 +5,6 @@ window.CONFIG = {
   ADMIN_USER: "tahatito1912008taha@gmail.com",
   ADMIN_PASS: "taha1912008taha",
   PHONE: "+201118174065",
-  GIST_FILE: "taha-site-data.json",
   OWNER: {
     siteName: "طه",
     name: "طه عبد العزيز الجمل",
@@ -13,7 +12,7 @@ window.CONFIG = {
     location: "كفر قنديل — أطفيح — الجيزة",
     birthdate: "2008-01-19",
     quote: "العلم يرفع بيتاً لا عماد له... والجهل يهدم بيت العز والشرف",
-    about: "طالب في معهد مواد بناء حلوان. شغوف بالتصميم والبرمجة وبناء الأشياء الجميلة. أؤمن أن التفاصيل الصغيرة هي ما تصنع الفرق الكبير.",
+    about: "طالب في معهد مواد بناء حلوان. شغوف بالتصميم والبرمجة وبناء الأشياء الجميلة.",
     whatsapp: "https://api.whatsapp.com/send?phone=+201118174065",
     facebook: "https://www.facebook.com/share/1T7vybiZh6/",
     instagram: "https://www.instagram.com/mxeko_1",

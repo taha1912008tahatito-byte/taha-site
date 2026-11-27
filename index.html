@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#18191a">
+<meta name="theme-color" content="#0a0a0f">
 <title>طه عبد العزيز الجمل</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -21,6 +21,7 @@
 <nav class="navbar">
   <a href="/" class="brand" id="siteBrand">طه</a>
   <div class="nav-actions">
+    <button id="editBtn" class="edit-btn" title="تعديل">✏️</button>
     <button id="appsBtn" class="icon-btn" title="المميزات">🎮</button>
     <button id="themeBtn" class="icon-btn">🌙</button>
     <a href="admin.html" class="admin-btn">🔐 لوحة</a>
@@ -109,7 +110,7 @@
     <div id="tab-about" style="display:none">
       <div class="fb-card">
         <h3 style="color:var(--accent);margin-bottom:10px;font-size:15px">عني</h3>
-        <p id="aboutText" style="font-size:14px;line-height:1.8;color:var(--fb-text)">—</p>
+        <p id="aboutText" style="font-size:14px;line-height:1.8;color:var(--text)">—</p>
       </div>
     </div>
 
@@ -147,43 +148,11 @@
 <a id="floatWA" class="float-wa" href="#" target="_blank">💬</a>
 <button id="toTop" class="to-top">↑</button>
 
-<!-- APPS MODAL — 20 زرًا جديدًا + القديمة -->
 <div id="appsModal" class="modal apps-modal">
   <div class="apps-box">
     <button class="apps-close" id="appsClose">✕</button>
     <h2 class="apps-title">🎮 المميزات والألعاب</h2>
-    <div class="apps-grid">
-      <button class="app-card" data-app="calc"><span>🧮</span><b>حاسبة</b></button>
-      <button class="app-card" data-app="browser"><span>🌐</span><b>متصفح</b></button>
-      <button class="app-card" data-app="tictactoe"><span>❌</span><b>إكس أو</b></button>
-      <button class="app-card" data-app="guess"><span>🎯</span><b>تخمين</b></button>
-      <button class="app-card" data-app="memory"><span>🧠</span><b>ذاكرة</b></button>
-      <button class="app-card" data-app="rps"><span>✊</span><b>حجر ورقة</b></button>
-      <button class="app-card" data-app="dice"><span>🎲</span><b>نرد</b></button>
-      <button class="app-card" data-app="flip"><span>🪙</span><b>عملة</b></button>
-      <button class="app-card" data-app="timer"><span>⏱️</span><b>مؤقت</b></button>
-      <button class="app-card" data-app="stopwatch"><span>⏲️</span><b>ساعة</b></button>
-      <button class="app-card" data-app="random"><span>🎰</span><b>عشوائي</b></button>
-      <button class="app-card" data-app="notes"><span>📝</span><b>ملاحظات</b></button>
-      <button class="app-card" data-app="qrgen"><span>📱</span><b>QR</b></button>
-      <button class="app-card" data-app="bmi"><span>⚖️</span><b>BMI</b></button>
-      <button class="app-card" data-app="password"><span>🔐</span><b>كلمة سر</b></button>
-      <button class="app-card" data-app="prayer"><span>🕌</span><b>مواقيت الصلاة</b></button>
-      <button class="app-card" data-app="weather"><span>🌤️</span><b>الطقس</b></button>
-      <button class="app-card" data-app="currency"><span>💱</span><b>عملات</b></button>
-      <button class="app-card" data-app="quran"><span>📖</span><b>آية اليوم</b></button>
-      <button class="app-card" data-app="hadith"><span>💡</span><b>حديث اليوم</b></button>
-      <button class="app-card" data-app="game2048"><span>🔢</span><b>2048</b></button>
-      <button class="app-card" data-app="snake"><span>🐍</span><b>سنيك</b></button>
-      <button class="app-card" data-app="colorpicker"><span>🎨</span><b>ألوان</b></button>
-      <button class="app-card" data-app="unitconv"><span>📏</span><b>وحدات</b></button>
-      <button class="app-card" data-app="countdown"><span>⏳</span><b>عداد</b></button>
-      <button class="app-card" data-app="wordscramble"><span>🔤</span><b>حروف</b></button>
-      <button class="app-card" data-app="mp-chat"><span>💬</span><b>دردشة جماعية</b></button>
-      <button class="app-card" data-app="mp-ttt"><span>❌</span><b>إكس أو جماعي</b></button>
-      <button class="app-card" data-app="mp-rps"><span>✊</span><b>حجر ورقة جماعي</b></button>
-      <button class="app-card" data-app="mp-reaction"><span>⚡</span><b>سباق سرعة</b></button>
-    </div>
+    <div class="apps-grid" id="appsGrid"></div>
   </div>
 </div>
 
@@ -203,10 +172,6 @@
       <input id="chatPhone" placeholder="رقمك (اختياري)">
       <textarea id="chatMsg" placeholder="رسالتك..." rows="3"></textarea>
       <button id="chatSend" class="chat-send">📤 إرسال</button>
-    </div>
-    <div id="chatReplies" style="margin-top:12px;max-height:200px;overflow-y:auto;display:none">
-      <p style="color:var(--accent);font-size:11px;margin-bottom:4px">📬 الردود:</p>
-      <div id="chatRepliesList"></div>
     </div>
   </div>
 </div>
